@@ -1,30 +1,35 @@
-// EnhancedAuthScreen.js
-import React, { useState } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebaseConfig';
-import { Text, Input, Button } from 'react-native-elements';
+import React, { useState, useEffect, useRef } from "react";
+import { View, ActivityIndicator, StyleSheet, Animated } from "react-native";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebaseConfig";
+import { Text, Input, Button, Card } from "react-native-elements";
 
 export default function EnhancedAuthScreen() {
-  // Toggle between "login" or "signup"
-  const [mode, setMode] = useState('login'); 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
+  const [mode, setMode] = useState("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500, 
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
   const handleAuthAction = async () => {
-    setErrorMsg('');
+    setErrorMsg("");
     setLoading(true);
     try {
-      if (mode === 'login') {
-        // LOGIN user
+      if (mode === "login") {
         await signInWithEmailAndPassword(auth, email.trim(), password);
       } else {
-        // SIGN UP user
         await createUserWithEmailAndPassword(auth, email.trim(), password);
       }
-      // onAuthStateChanged in App.js will handle navigation
     } catch (error) {
       setErrorMsg(error.message);
     } finally {
@@ -33,62 +38,61 @@ export default function EnhancedAuthScreen() {
   };
 
   const toggleMode = () => {
-    // Clear fields, error, and flip mode
-    setEmail('');
-    setPassword('');
-    setErrorMsg('');
-    setMode(mode === 'login' ? 'signup' : 'login');
+    setEmail("");
+    setPassword("");
+    setErrorMsg("");
+    setMode(mode === "login" ? "signup" : "login");
   };
 
   return (
     <View style={styles.container}>
-      <Text h3 style={styles.title}>
-        {mode === 'login' ? 'Welcome Back!' : 'Create an Account'}
-      </Text>
+      <Animated.View style={[styles.fadeContainer, { opacity: fadeAnim }]}>
+        <Card containerStyle={styles.card}>
+          <Text h3 style={styles.title}>
+            {mode === "login" ? "Welcome Back!" : "Create an Account"}
+          </Text>
 
-      <Input
-        label="Email"
-        placeholder="Enter your email"
-        autoCapitalize="none"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={setEmail}
-        leftIcon={{ type: 'material', name: 'email' }}
-      />
+          <Input
+            label="Email"
+            placeholder="Enter your email"
+            autoCapitalize="none"
+            keyboardType="email-address"
+            value={email}
+            onChangeText={setEmail}
+            leftIcon={{ type: "material", name: "email", color: "#f4511e" }}
+          />
 
-      <Input
-        label="Password"
-        placeholder="Enter your password"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-        leftIcon={{ type: 'material', name: 'lock' }}
-      />
+          <Input
+            label="Password"
+            placeholder="Enter your password"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+            leftIcon={{ type: "material", name: "lock", color: "#f4511e" }}
+          />
 
-      {errorMsg ? (
-        <Text style={styles.errorText}>{errorMsg}</Text>
-      ) : null}
+          {errorMsg ? <Text style={styles.errorText}>{errorMsg}</Text> : null}
 
-      {/* Action button */}
-      <Button
-        title={mode === 'login' ? 'Log In' : 'Sign Up'}
-        onPress={handleAuthAction}
-        containerStyle={styles.btnContainer}
-      />
+          <Button
+            title={mode === "login" ? "Log In" : "Sign Up"}
+            onPress={handleAuthAction}
+            buttonStyle={styles.primaryButton}
+          />
 
-      {/* Loading spinner (shown when authenticating) */}
-      {loading && <ActivityIndicator size="large" style={{ marginTop: 10 }} />}
+          {loading && <ActivityIndicator size="large" color="#f4511e" style={{ marginTop: 10 }} />}
 
-      {/* Toggle between Login & Signup */}
-      <Button
-        type="clear"
-        title={
-          mode === 'login'
-            ? "Don't have an account? Sign Up"
-            : 'Already have an account? Log In'
-        }
-        onPress={toggleMode}
-      />
+          <Button
+            type="clear"
+            title={
+              mode === "login"
+                ? "Don't have an account? Sign Up"
+                : "Already have an account? Log In"
+            }
+            onPress={toggleMode}
+            titleStyle={{ color: "#f4511e" }}
+          />
+        </Card>
+      </Animated.View>
     </View>
   );
 }
@@ -96,22 +100,40 @@ export default function EnhancedAuthScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    marginTop: 40,
-    justifyContent: 'center',
+    backgroundColor: "#f4511e",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  fadeContainer: {
+    width: "100%",
+    alignItems: "center",
+  },
+  card: {
+    width: "100%",
+    maxWidth: 400,
+    padding: 20,
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 8,
   },
   title: {
-    textAlign: 'center',
-    marginBottom: 24,
+    textAlign: "center",
+    marginBottom: 20,
+    color: "#f4511e",
   },
-  btnContainer: {
+  primaryButton: {
+    backgroundColor: "#f4511e",
+    borderRadius: 8,
+    paddingVertical: 12,
     marginTop: 10,
   },
   errorText: {
-    color: 'red',
-    marginHorizontal: 10,
-    marginTop: -10,
+    color: "red",
+    textAlign: "center",
     marginBottom: 10,
-    textAlign: 'center',
   },
 });
