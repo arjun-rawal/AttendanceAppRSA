@@ -1,13 +1,45 @@
 import React from 'react';
-import { SafeAreaView, View, Text, StyleSheet } from 'react-native';
+import { SafeAreaView, View, Text, StyleSheet, ScrollView } from 'react-native';
+import { Button } from '@rneui/themed';
+import {format} from 'date-fns';
 
 export default function ClassesScreen({ route }) {
   const { selectedDate } = route.params;
-
+  const formattedDate = format(new Date(selectedDate), "MMMM do, yyyy");
+   //Creates icons to display on the buttons
   // hardcoded data, but ideally we would fetch assignments based on the date
   const classes = [
-    { name: 'Math', task: '4 digit addition' },
-    { name: 'History', task: 'Native Americans in Popular Culture Handout' },
+    { name: 'Math', task: '- 4 digit addition' },
+    { name: 'History', task: '- Native Americans in Popular Culture Handout' },
+    { name: 'Science', task: '- Read pages 100-110' },
+    { name: 'English', task: '- Write a 3 page essay on the book "To Kill a Mockingbird"' },
+    { name: 'Spanish', task: '- Study for quiz on vocabulary' },
+    { name: 'PE', task: '- Run 1 mile' },
+    { name: 'Art', task: '- Draw a self portrait' },
+    { name: 'Music', task: '- Practice the piano for 30 minutes' },
+    { name: 'Computer Science', task: '- Finish coding project' },
+    { name: 'Drama', task: '- Memorize lines for the play' },
+    { name: 'Health', task: '- Read chapter 5 in the textbook' },
+    { name: 'Home Economics', task: '- Bake cookies' },
+    { name: 'Woodshop', task: '- Build a birdhouse' },
+    { name: 'Gym', task: '- Play basketball' },
+    { name: 'Band', task: '- Practice the trumpet for 30 minutes' },
+    { name: 'Choir', task: '- Practice singing for 30 minutes' },
+    { name: 'Math', task: '- 4 digit addition' },
+    { name: 'History', task: '- Native Americans in Popular Culture Handout' },
+    { name: 'Science', task: '- Read pages 100-110' },
+    { name: 'English', task: '- Write a 3 page essay on the book "To Kill a Mockingbird"' },
+    { name: 'Spanish', task: '- Study for quiz on vocabulary' },
+    { name: 'PE', task: '- Run 1 mile' },
+    { name: 'Art', task: '- Draw a self portrait' },
+    { name: 'Music', task: '- Practice the piano for 30 minutes' },
+    { name: 'Computer Science', task: '- Finish coding project' },
+    { name: 'Drama', task: '- Memorize lines for the play' },
+    { name: 'Health', task: '- Read chapter 5 in the textbook' },
+    { name: 'Home Economics', task: '- Bake cookies' },
+    { name: 'Woodshop', task: '- Build a birdhouse' },
+    { name: 'Gym', task: '- Play basketball' },
+    { name: 'Band', task: '- Practice the trumpet for' }
   ];
   /*example of how we would select based on date:
   const missed_days = ['2025-03-12': [
@@ -20,15 +52,17 @@ export default function ClassesScreen({ route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.header}>Classes for {selectedDate}</Text>
-        {classes.map((classItem, index) => (
-          <View key={index} style={styles.classItem}>
-            <Text style={styles.className}>{classItem.name}</Text>
-            <Text style={styles.task}>{classItem.task}</Text>
-          </View>
-        ))}
-      </View>
+      <ScrollView contentContainerStyle={styles.scrollViewContent}>
+        <View style={styles.content}>
+          <Text style={styles.header}>Assignments for {formattedDate}</Text>
+          {classes.map((classItem, index) => (
+            <View key={index} style={styles.classItem}>
+              <Button title={classItem.name} titleStyle={styles.className} color='white' radius={15} />
+              <Text style={styles.task}>{classItem.task}</Text>
+            </View>
+          ))}
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -36,9 +70,12 @@ export default function ClassesScreen({ route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingBottom: 80,
+  },
+  scrollViewContent: {
+    flexGrow: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingBottom: 80,
   },
   content: {
     width: '100%',
@@ -56,11 +93,15 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   className: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '600',
+    color: '#000000',
   },
   task: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#555',
+    marginTop: 5,
+    fontWeight: 'bold',
+    fontFamily: 'Roboto',
   },
 });

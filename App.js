@@ -8,6 +8,7 @@ import { Calendar } from 'react-native-calendars'; // Import calendar
 import BottomNavBar from './components/BottomNavBar';
 import LoginSignupScreen from './components/LoginSignupScreen'; 
 import ClassesScreen from './components/ClassesScreen'; // New classes screen
+import SpecificClass from './components/SpecificClass'; // New specific class screen
 
 const Stack = createStackNavigator();
 
@@ -59,7 +60,7 @@ export default function App() {
             </SafeAreaView>
           )}
         </Stack.Screen>
-
+        <Stack.Screen name="SpecificClass" component={SpecificClass} />
         <Stack.Screen name="Classes" component={ClassesScreen} />
       </Stack.Navigator>
     </NavigationContainer>
