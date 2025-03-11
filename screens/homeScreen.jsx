@@ -1,54 +1,115 @@
-import { StyleSheet, View } from "react-native";
-import { Calendar } from "react-native-calendars";
+import React, { useState } from "react";
+import { StyleSheet, View, TouchableOpacity } from "react-native";
+import { Agenda } from "react-native-calendars";
 import { Button, Text } from "react-native-elements";
 import { SafeAreaView } from "react-native-safe-area-context";
-import BottomNavBar from "../components/BottomNavBar";
+import { signOut } from "firebase/auth";
+import { auth } from "../firebaseConfig";
+import HomeNavBar from "../components/HomeNavBar";
 
-export default function HomeScreen(navigation){
-    return(
+export default function HomeScreen({ navigation, user }) {
+  // Sample events for different days.
+  // Each event includes its date so we know which date to navigate with.
+  const [items, setItems] = useState({
+    "2025-03-12": [
+      { date: "2025-03-12", name: "Calc 1" },
+      { date: "2025-03-12", name: "Biology 1" },
+
+    ],
+    "2025-03-15": [
+      { date: "2025-03-15", name: "Science Fair", time: "2:00 PM - 4:00 PM" },
+    ],
+    "2025-03-18": [
+      { date: "2025-03-18", name: "History Project Due", time: "All Day" },
+    ],
+  });
+
+  return (
     <SafeAreaView style={styles.container}>
-        
-    <View style={styles.content}>
-      <Text style={styles.text}>You are logged in!</Text>
+      {/* Example welcome text */}
+      <Text h4 style={styles.title}>Welcome {user.email}!</Text>
 
-      {/* Sign out button */}
+      {/* Example Sign Out button (uncomment if you want to use it)
       <Button
         title="Sign Out"
         onPress={() => signOut(auth).catch((err) => console.error(err))}
+        buttonStyle={styles.button}
       />
+      */}
 
-      {/* Calendar component */}
-      <Calendar
-        markedDates={{
-          '2025-03-12': { selected: true, selectedColor: 'blue', selectedTextColor: 'white' },
-          '2025-03-15': { selected: true, selectedColor: 'blue', selectedTextColor: 'white' },
-          // TODO: update using google classroom/teacher backend, make this interact more with classes screen
-        }}
-        onDayPress={(day) => {
-          // go to classes screen with the selected date
-          navigation.navigate('Classes', { selectedDate: day.dateString });
-        }}
-      />
-    </View>
-    <BottomNavBar />
-  </SafeAreaView>
-    );
+      <View style={styles.agendaContainer}>
+        <Agenda
+          items={items}
+
+
+          markedDates={{
+            "2025-03-12": {
+              selected: true,
+              selectedColor: "red",
+            },
+            "2025-03-15": {
+              selected: true,
+              selectedColor: "red",
+            },
+            "2025-03-18": {
+              selected: true,
+              selectedColor: "red",
+            },
+          }}
+
+          // Render each item as a pressable card/button
+          renderItem={(item) => (
+            <TouchableOpacity
+              style={styles.item}
+              onPress={() =>
+                navigation.navigate("Classes", { selectedDate: item.date })
+              }
+            >
+              <Text style={styles.itemTitle}>{item.name}</Text>
+            </TouchableOpacity>
+          )}
+        />
+      </View>
+
+      {/* Bottom nav bar */}
+      <HomeNavBar initialIndex={0} navigation={navigation} />
+    </SafeAreaView>
+  );
 }
-
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    position: 'relative',
   },
-  content: {
+  title: {
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  button: {
+    marginBottom: 10,
+  },
+  agendaContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingBottom: 80, // so content doesn't get hidden behind nav bar
   },
-  text: {
-    fontSize: 18,
-    marginBottom: 16,
+  item: {
+    backgroundColor: "#f9f9f9",
+    marginHorizontal: 10,
+    marginVertical: 5,
+    borderRadius: 6,
+    padding: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  itemTitle: {
+    fontWeight: "bold",
+    fontSize: 16,
+    marginBottom: 3,
+  },
+  itemTime: {
+    fontSize: 14,
+    color: "#666",
   },
 });

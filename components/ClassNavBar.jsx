@@ -1,9 +1,8 @@
-// BottomNavBar.js
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Icon } from 'react-native-elements';
 
-const BottomNavBar = () => {
+const ClassNavBar = () => {
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.iconContainer} onPress={() => console.log("AI Summary pressed")}>
@@ -58,4 +57,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BottomNavBar;
+export default ClassNavBar;

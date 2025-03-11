@@ -4,7 +4,7 @@ import { Button } from '@rneui/themed';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 
-export default function ClassesScreen({ route }) {
+export default function ClassesScreen({ route, navigation }) {
   const { selectedDate } = route.params;
   const myIcon = <Icon name="rocket" size={30} color="#900" />; //Creates icons to display on the buttons
   // hardcoded data, but ideally we would fetch assignments based on the date
