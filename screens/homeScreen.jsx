@@ -28,14 +28,7 @@ export default function HomeScreen({ navigation, user }) {
     <SafeAreaView style={styles.container}>
       {/* Example welcome text */}
       <Text h4 style={styles.title}>Welcome {user.email}!</Text>
-
-      {/* Example Sign Out button (uncomment if you want to use it)
-      <Button
-        title="Sign Out"
-        onPress={() => signOut(auth).catch((err) => console.error(err))}
-        buttonStyle={styles.button}
-      />
-      */}
+      <Text h4 style={styles.title}>Absence Count: 3</Text>
 
       <View style={styles.agendaContainer}>
         <Agenda
@@ -57,7 +50,6 @@ export default function HomeScreen({ navigation, user }) {
             },
           }}
 
-          // Render each item as a pressable card/button
           renderItem={(item) => (
             <TouchableOpacity
               style={styles.item}
