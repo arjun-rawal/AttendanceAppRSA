@@ -1,76 +1,59 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, Text } from 'react-native';
-import { Button } from '@rneui/themed';
-import { ActivityIndicator } from 'react-native';
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+// App.js
+import React, { useState, useEffect } from 'react';
+import { SafeAreaView, View, Text, StyleSheet, Button } from 'react-native';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 
+import { auth } from './firebaseConfig'; 
+import BottomNavBar from './components/BottomNavBar';
+import LoginSignupScreen from './components/LoginSignupScreen'; // Replace old screen
 
 export default function App() {
-  const [story, setStory] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState(null);
 
+  // Listen for auth state changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return unsubscribe;
+  }, []);
 
+  // If not logged in, show the EnhancedAuthScreen
+  if (!user) {
+    return <LoginSignupScreen />;
+  }
 
-  const genAI = new GoogleGenerativeAI("AIzaSyAjy3vPGUqy5KObrgOubwE0ZWPbXz0oJbA");
-
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-const prompt = "tell me a story in 100 words";
-
-
-  const handleTellStory = async () => {
-    setLoading(true);
-    setStory('');
-    try {
-      const result = await model.generateContent(prompt);
-      setStory(result.response.text());
-    } catch (error) {
-      console.error('Error fetching story:', error);
-      setStory('There was an error fetching the story.');
-    }
-    setLoading(false);
-  };
-
+  // User is authenticated, show main content
   return (
-    <View style={styles.container}>
-      <Button
-        title="Tell Me A Story"
-        onPress={handleTellStory}
-        buttonStyle={styles.button}
-        disabled={loading}
-      />
-      {loading ? (
-        <ActivityIndicator size="large" color="#0000ff" style={styles.loading} />
-      ) : (
-        <Text style={styles.storyText}>{story}</Text>
-      )}
-    </View>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.content}>
+        <Text style={styles.text}>You are logged in!</Text>
+
+        {/* Sign out button */}
+        <Button
+          title="Sign Out"
+          onPress={() => signOut(auth).catch((err) => console.error(err))}
+        />
+      </View>
+
+      <BottomNavBar />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    position: 'relative',
+  },
+  content: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
+    paddingBottom: 80, // so content doesn't get hidden behind nav bar
   },
-  header: {
-    fontSize: 24,
-    marginBottom: 20,
-    fontWeight: 'bold',
-  },
-  button: {
-    backgroundColor: '#2089dc',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-  },
-  loading: {
-    marginTop: 20,
-  },
-  storyText: {
-    marginTop: 20,
-    fontSize: 16,
-    textAlign: 'center',
+  text: {
+    fontSize: 18,
+    marginBottom: 16,
   },
 });
