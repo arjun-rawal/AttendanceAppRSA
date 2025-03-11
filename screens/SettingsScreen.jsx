@@ -73,7 +73,7 @@ export default function SettingsScreen({ navigation, user }) {
           Terms of Service
         </Text>
       </View>
-      <HomeNavBar initialIndex={1} />
+      <HomeNavBar initialIndex={2} />
 
     </SafeAreaView>
 

@@ -3,7 +3,7 @@ import { View, StyleSheet } from "react-native";
 import { Tab, Icon } from "@rneui/themed";
 import { useNavigation } from "@react-navigation/native";
 
-const HomeNavBar = ({initialIndex}) => {
+const HomeNavBar = ({ initialIndex }) => {
   const [activeIndex, setActiveIndex] = useState(initialIndex);
   const navigation = useNavigation();
 
@@ -11,6 +11,8 @@ const HomeNavBar = ({initialIndex}) => {
     setActiveIndex(e);
     if (e === 0) {
       navigation.replace("Home");
+    } else if (e === 1) {
+      navigation.replace("ClassManager");
     } else {
       navigation.replace("Settings");
     }
@@ -19,13 +21,22 @@ const HomeNavBar = ({initialIndex}) => {
   return (
     <View style={styles.navbarContainer}>
       <Tab value={activeIndex} onChange={handleChange} indicatorStyle={styles.indicator}>
+        {/* Home Tab */}
         <Tab.Item
           title="Home"
           icon={<Icon name="home" type="feather" size={28} color={activeIndex === 0 ? "red" : "gray"} />}
         />
+
+        {/* Classes Tab (Newly Added) */}
+        <Tab.Item
+          title="Classes"
+          icon={<Icon name="book" type="feather" size={28} color={activeIndex === 1 ? "red" : "gray"} />}
+        />
+
+        {/* Settings Tab */}
         <Tab.Item
           title="Settings"
-          icon={<Icon name="settings" type="feather" size={28} color={activeIndex === 1 ? "red" : "gray"} />}
+          icon={<Icon name="settings" type="feather" size={28} color={activeIndex === 2 ? "red" : "gray"} />}
         />
       </Tab>
     </View>

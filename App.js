@@ -10,6 +10,7 @@ import ClassesScreen from "./screens/ClassesScreen"; // New classes screen
 import SpecificClass from "./screens/SpecificClass"; // New specific class screen
 import HomeScreen from "./screens/homeScreen";
 import SettingsScreen from "./screens/SettingsScreen";
+import ClassManagerScreen from "./screens/ClassManagerScreen";
 
 const Stack = createStackNavigator();
 
@@ -40,6 +41,8 @@ export default function App() {
         <Stack.Screen name="Settings" options={{ title: "Settings" }}>
         {(props) => <SettingsScreen {...props} user={user} />}
         </Stack.Screen>
+        <Stack.Screen name="ClassManager" component={ClassManagerScreen} />
+
       </Stack.Navigator>
     </NavigationContainer>
   );
