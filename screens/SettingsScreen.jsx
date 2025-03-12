@@ -5,9 +5,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { signOut, deleteUser } from "firebase/auth";
 import { auth } from "../firebaseConfig";
 import HomeNavBar from "../components/HomeNavBar";
+import { styled } from "nativewind";
 
 export default function SettingsScreen({ navigation, user }) {
   // Function to delete classes (Replace with actual logic)
+  const StyledText = styled(Text);
   const handleDeleteClasses = () => {
     Alert.alert(
       "Delete Classes",
@@ -45,7 +47,7 @@ export default function SettingsScreen({ navigation, user }) {
   return (
     <>
     <SafeAreaView style={styles.container}>
-      <Text h4 style={styles.title}>Welcome {user.email}!</Text>
+      <StyledText className="text-center border rounded-full  border-[#d83e3e]">Welcome {user.email}!</StyledText>
 
       <Button
         title="Sign Out"

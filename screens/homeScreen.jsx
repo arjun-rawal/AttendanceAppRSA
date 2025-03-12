@@ -13,6 +13,8 @@ export default function HomeScreen({ navigation, user }) {
   // Sample events for different days.
   // Each event includes its date so we know which date to navigate with.
   const StyledText = styled(Text);
+  const StyledView = styled(View);
+  const StyledButton = styled(Button);
 
   const [items, setItems] = useState({
     "2025-03-12": [
@@ -33,8 +35,10 @@ export default function HomeScreen({ navigation, user }) {
   return (
     <SafeAreaView style={styles.container}>
       {/* Example welcome text */}
-      <Text h4 style={styles.title}>Welcome {user.email}!</Text>
-      <StyledText className="font-bold">Absence Count: 3</StyledText>
+      <StyledText className="text-center font-bold  shadow text-2xl mb-5 ml-2 mr-2">Welcome {user.email}!</StyledText>
+      <StyledText className="text-center font-bold border rounded-full shadow text-xl border-solid mt-1 ml-2 mr-2">Absence Count: 3</StyledText>
+
+      <StyledText className="text-center font-bold mt-3 mb-3 text-xl">Calendar: </StyledText>
 
       <View style={styles.agendaContainer}>
         <Agenda

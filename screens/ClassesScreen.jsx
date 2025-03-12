@@ -9,6 +9,8 @@ export default function ClassesScreen({ route }) {
   const formattedDate = format(new Date(selectedDate), "MMMM do, yyyy");
    //Creates icons to display on the buttons
   // hardcoded data, but ideally we would fetch assignments based on the date
+  const StyledText = styled(Text);
+  const StyledView = styled(View);
   const classes = [
     { name: 'Math', task: '- 4 digit addition' },
     { name: 'History', task: '- Native Americans in Popular Culture Handout' },
@@ -55,7 +57,7 @@ export default function ClassesScreen({ route }) {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
         <View style={styles.content}>
-          <Text style={styles.header}>Assignments for {formattedDate}</Text>
+          <StyledText className="text-center font-bold border rounded-full shadow text-2xl border-solid mt-3">Assignments on {formattedDate}</StyledText>
           {classes.map((classItem, index) => (
             <View key={index} style={styles.classItem}>
               <Button title={classItem.name} titleStyle={styles.className} color='white' radius={15} />

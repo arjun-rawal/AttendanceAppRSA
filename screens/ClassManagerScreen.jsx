@@ -3,7 +3,7 @@ import { View, FlatList, TouchableOpacity, StyleSheet } from "react-native";
 import { Text, Button } from "react-native-elements";
 import { SafeAreaView } from "react-native-safe-area-context";
 import HomeNavBar from "../components/HomeNavBar";
-
+import {styled} from 'nativewind';
 export default function ClassManagerScreen({navigation}) {
   // Sample classes with default absence count
   const [classes, setClasses] = useState([

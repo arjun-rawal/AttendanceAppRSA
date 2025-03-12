@@ -24,18 +24,33 @@ const HomeNavBar = ({ initialIndex }) => {
         {/* Home Tab */}
         <Tab.Item
           title="Home"
+          titleStyle={{  // Change the font family
+            fontSize: 16,                  // Adjust font size
+            fontWeight: 'bold',            // Font weight
+            color: 'black',                 // Text color
+          }}
           icon={<Icon name="home" type="feather" size={28} color={activeIndex === 0 ? "red" : "gray"} />}
         />
 
         {/* Classes Tab (Newly Added) */}
         <Tab.Item
           title="Classes"
+          titleStyle={{  // Change the font family
+            fontSize: 16,                  // Adjust font size
+            fontWeight: 'bold',            // Font weight
+            color: 'black',                 // Text color
+          }}
           icon={<Icon name="book" type="feather" size={28} color={activeIndex === 1 ? "red" : "gray"} />}
         />
 
         {/* Settings Tab */}
         <Tab.Item
           title="Settings"
+          titleStyle={{  // Change the font family
+            fontSize: 16,                  // Adjust font size
+            fontWeight: 'bold',            // Font weight
+            color: 'black',                 // Text color
+          }}
           icon={<Icon name="settings" type="feather" size={28} color={activeIndex === 2 ? "red" : "gray"} />}
         />
       </Tab>
@@ -55,6 +70,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -2 }, // Shadow above navbar
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    paddingVertical: 8,
+
   },
   indicator: {
     backgroundColor: "red",
