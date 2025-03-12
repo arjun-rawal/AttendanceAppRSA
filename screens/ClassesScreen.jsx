@@ -2,6 +2,7 @@ import React from 'react';
 import { SafeAreaView, View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Button } from '@rneui/themed';
 import {format} from 'date-fns';
+import {styled} from 'nativewind';
 
 export default function ClassesScreen({ route }) {
   const { selectedDate } = route.params;

@@ -6,10 +6,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebaseConfig";
 import HomeNavBar from "../components/HomeNavBar";
+import { styled } from "nativewind";
+
 
 export default function HomeScreen({ navigation, user }) {
   // Sample events for different days.
   // Each event includes its date so we know which date to navigate with.
+  const StyledText = styled(Text);
+
   const [items, setItems] = useState({
     "2025-03-12": [
       { date: "2025-03-12", name: "Calc 1" },
@@ -24,11 +28,13 @@ export default function HomeScreen({ navigation, user }) {
     ],
   });
 
+ 
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Example welcome text */}
       <Text h4 style={styles.title}>Welcome {user.email}!</Text>
-      <Text h4 style={styles.title}>Absence Count: 3</Text>
+      <StyledText className="font-bold">Absence Count: 3</StyledText>
 
       <View style={styles.agendaContainer}>
         <Agenda
