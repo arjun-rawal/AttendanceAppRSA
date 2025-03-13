@@ -82,6 +82,7 @@ export default function HomeScreen({ navigation, user }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#fff",
   },
   title: {
     textAlign: "center",
@@ -92,9 +93,11 @@ const styles = StyleSheet.create({
   },
   agendaContainer: {
     flex: 1,
+    
+
   },
   item: {
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "white",
     marginHorizontal: 10,
     marginVertical: 5,
     borderRadius: 6,

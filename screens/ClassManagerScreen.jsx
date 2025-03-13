@@ -26,12 +26,12 @@ export default function ClassManagerScreen({navigation}) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text h4 style={styles.header}>Manage Your Classes</Text>
+      <Text className="text-center font-bold  shadow text-3xl mb-5">Manage Your Classes</Text>
 
       {/* Buttons for Syncing & Adding Classes */}
       <View style={styles.buttonContainer}>
-        <Button title="Sync Google Classroom" onPress={syncGoogleClassroom} buttonStyle={styles.button} />
-        <Button title="Add Class Manually" onPress={addClassManually} buttonStyle={styles.button} />
+        <Button title="Sync Google Classroom" onPress={syncGoogleClassroom} buttonStyle={styles.button} titleStyle={styles.buttonText} />
+        <Button title="Add Class Manually" onPress={addClassManually} buttonStyle={styles.button} titleStyle={styles.buttonText} />
       </View>
 
       {/* Scrollable List of Classes */}
@@ -54,6 +54,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+    backgroundColor: "#fff",
   },
   header: {
     textAlign: "center",
@@ -66,8 +67,15 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   button: {
-    backgroundColor: "#007BFF",
-    
+    backgroundColor: '#007BFF',    // Button color
+    paddingVertical: 12,            // Vertical padding
+    paddingHorizontal: 24,          // Horizontal padding
+    borderRadius: 8,               // Rounded corners for a polished look
+    elevation: 3,                  // Adds a subtle shadow for depth
+    shadowColor: '#000',           // Shadow color
+    shadowOffset: { width: 0, height: 2 }, // Shadow position
+    shadowOpacity: 0.2,            // Shadow opacity
+    shadowRadius: 4,               // Shadow radius
   },
   classItem: {
     backgroundColor: "#f0f0f0",
@@ -84,6 +92,12 @@ const styles = StyleSheet.create({
   absences: {
     fontSize: 16,
     color: "gray",
+  },
+  buttonText: {
+    color: 'white',                // Text color
+    fontSize: 18,                  // Font size
+    fontWeight: '600',             // Bold font weight (slightly bold)
+    letterSpacing: 1,              // Slight spacing between letters
   },
 });
 
