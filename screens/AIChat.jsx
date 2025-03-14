@@ -1,113 +1,198 @@
-import React from 'react';
-import { SafeAreaView, View, Text, StyleSheet, ScrollView } from 'react-native';
-import { Button } from '@rneui/themed';
-import {format} from 'date-fns';
-import {styled} from 'nativewind';
-import ClassBar from '../components/ClassBar';
+import React, { useState, useEffect } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
+import * as GoogleGenerativeAI from "@google/generative-ai";
+import ClassBar from "../components/ClassBar";
+import { useNavigation } from "@react-navigation/native";
 
+import {
+  View,
+  Text,
+  TextInput,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
+  TouchableOpacity,
+} from "react-native";
+import * as Speech from "expo-speech";
+import { FontAwesome } from "@expo/vector-icons";
+import { Entypo } from "@expo/vector-icons";
+import FlashMessage, { showMessage } from "react-native-flash-message";
 
-export default function ClassesScreen({ route, navigation }) {
-  const { selectedDate } = route.params;
-  const formattedDate = format(new Date(selectedDate), "MMMM do, yyyy");
-   //Creates icons to display on the buttons
-  // hardcoded data, but ideally we would fetch assignments based on the date
-  const StyledText = styled(Text);
-  const StyledView = styled(View);
-  const classes = [
-    { name: 'Math', task: '- 4 digit addition' },
-    { name: 'History', task: '- Native Americans in Popular Culture Handout' },
-    { name: 'Science', task: '- Read pages 100-110' },
-    { name: 'English', task: '- Write a 3 page essay on the book "To Kill a Mockingbird"' },
-    { name: 'Spanish', task: '- Study for quiz on vocabulary' },
-    { name: 'PE', task: '- Run 1 mile' },
-    { name: 'Art', task: '- Draw a self portrait' },
-    { name: 'Music', task: '- Practice the piano for 30 minutes' },
-    { name: 'Computer Science', task: '- Finish coding project' },
-    { name: 'Drama', task: '- Memorize lines for the play' },
-    { name: 'Health', task: '- Read chapter 5 in the textbook' },
-    { name: 'Home Economics', task: '- Bake cookies' },
-    { name: 'Woodshop', task: '- Build a birdhouse' },
-    { name: 'Gym', task: '- Play basketball' },
-    { name: 'Band', task: '- Practice the trumpet for 30 minutes' },
-    { name: 'Choir', task: '- Practice singing for 30 minutes' },
-    { name: 'Math', task: '- 4 digit addition' },
-    { name: 'History', task: '- Native Americans in Popular Culture Handout' },
-    { name: 'Science', task: '- Read pages 100-110' },
-    { name: 'English', task: '- Write a 3 page essay on the book "To Kill a Mockingbird"' },
-    { name: 'Spanish', task: '- Study for quiz on vocabulary' },
-    { name: 'PE', task: '- Run 1 mile' },
-    { name: 'Art', task: '- Draw a self portrait' },
-    { name: 'Music', task: '- Practice the piano for 30 minutes' },
-    { name: 'Computer Science', task: '- Finish coding project' },
-    { name: 'Drama', task: '- Memorize lines for the play' },
-    { name: 'Health', task: '- Read chapter 5 in the textbook' },
-    { name: 'Home Economics', task: '- Bake cookies' },
-    { name: 'Woodshop', task: '- Build a birdhouse' },
-    { name: 'Gym', task: '- Play basketball' },
-    { name: 'Band', task: '- Practice the trumpet for' }
-  ];
-  /*example of how we would select based on date:
-  const missed_days = ['2025-03-12': [
-    { name: 'Math', task: '4 digit addition' },
-    { name: 'History', task: 'Native Americans in Popular Culture Handout' },
-  ], etc for each missed day...
-  ]
-  const classes = missed_days[selected_date]; + some way to check if the day wasnt missed
-   */
+const GeminiChat = ({navigation}) => {
+  const [messages, setMessages] = useState([]);
+  const [userInput, setUserInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [showStopIcon, setShowStopIcon] = useState(false);
+
+  const API_KEY = "";
+
+  useEffect(() => {
+    const startChat = async () => {
+      const genAI = new GoogleGenerativeAI.GoogleGenerativeAI(API_KEY);
+      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+      const prompt = "hello! ";
+      const result = await model.generateContent(prompt);
+      const response = result.response;
+      const text = response.text();
+      console.log(text);
+      showMessage({
+        message: "Welcome to Gemini Chat 🤖",
+        description: text,
+        type: "info",
+        icon: "info",
+        duration: 2000,
+      });
+      setMessages([
+        {
+          text,
+          user: false,
+        },
+      ]);
+    };
+    //function call
+    startChat();
+  }, []);
+
+  const sendMessage = async () => {
+    setLoading(true);
+    const userMessage = { text: userInput, user: true };
+    setMessages([...messages, userMessage]);
+
+    const genAI = new GoogleGenerativeAI.GoogleGenerativeAI(API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const prompt = userMessage.text;
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const text = response.text();
+    setMessages([...messages, { text, user: false }]);
+    setLoading(false);
+    setUserInput("");
+
+    // if (text) {
+    //   Speech.speak(text);
+    // }
+    if (text && !isSpeaking) {
+      Speech.speak(text);
+      setIsSpeaking(true);
+      setShowStopIcon(true);
+    }
+  };
+
+  const toggleSpeech = () => {
+    console.log("isSpeaking", isSpeaking);
+    if (isSpeaking) {
+      Speech.stop();
+      setIsSpeaking(false);
+    } else {
+      Speech.speak(messages[messages.length - 1].text);
+      setIsSpeaking(true);
+    }
+  };
+
+  const ClearMessage = () => {
+    setMessages("");
+    setIsSpeaking(false);
+  };
+
+  const renderMessage = ({ item }) => (
+    <View style={styles.messageContainer}>
+      <Text style={[styles.messageText, item.user && styles.userMessage]}>
+        {item.text}
+      </Text>
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollViewContent}>
-        <View style={styles.content}>
-          <StyledText className="text-center font-bold border rounded-full shadow text-2xl border-solid mt-3">Assignments on {formattedDate}</StyledText>
-          {classes.map((classItem, index) => (
-            <View key={index} style={styles.classItem}>
-              <Button title={classItem.name} titleStyle={styles.className} color='white' radius={15} />
-              <Text style={styles.task}>{classItem.task}</Text>
-            </View>
-          ))}
-        </View>
-      </ScrollView>
-      <ClassBar initialIndex={0} navigation={navigation} />
+    <View style={styles.container}>
+      <FlatList
+        data={messages}
+        renderItem={renderMessage}
+        keyExtractor={(item) => item.text}
+        inverted
+      />
+      <View style={styles.inputContainer}>
+        <TouchableOpacity style={styles.micIcon} onPress={toggleSpeech}>
+          {isSpeaking ? (
+            <FontAwesome
+              name="microphone-slash"
+              size={24}
+              color="white"
+              style={{
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            />
+          ) : (
+            <FontAwesome
+              name="microphone"
+              size={24}
+              color="white"
+              style={{
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            />
+          )}
+        </TouchableOpacity>
+        <TextInput
+          placeholder="Type a message"
+          onChangeText={setUserInput}
+          value={userInput}
+          onSubmitEditing={sendMessage}
+          style={styles.input}
+          placeholderTextColor="#fff"
+        />
+        {
+          //show stop icon only when speaking
+          showStopIcon && (
+            <TouchableOpacity style={styles.stopIcon} onPress={ClearMessage}>
+              <Entypo name="controller-stop" size={24} color="white" />
+            </TouchableOpacity>
+          )
+        }
+        {/* {loading && <ActivityIndicator size="large" color="black" />} */}
+      </View>
+    </View>
+    <ClassBar initialIndex={0} navigation={navigation}/>
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: {
+  container: { flex: 1, backgroundColor: "#ffff", marginTop: 50 },
+  messageContainer: { padding: 10, marginVertical: 5 },
+  messageText: { fontSize: 16 },
+  inputContainer: { flexDirection: "row", alignItems: "center", padding: 10 },
+  input: {
     flex: 1,
-    paddingBottom: 80,
-  },
-  scrollViewContent: {
-    flexGrow: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  content: {
-    width: '100%',
-    paddingHorizontal: 20,
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  classItem: {
-    marginBottom: 10,
     padding: 10,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 5,
+    backgroundColor: "#131314",
+    borderRadius: 10,
+    height: 50,
+    color: "white",
   },
-  className: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#000000',
+  micIcon: {
+    padding: 10,
+    backgroundColor: "#131314",
+    borderRadius: 25,
+    height: 50,
+    width: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 5,
   },
-  task: {
-    fontSize: 14,
-    color: '#555',
-    marginTop: 5,
-    fontWeight: 'bold',
-    fontFamily: 'Roboto',
+  stopIcon: {
+    padding: 10,
+    backgroundColor: "#131314",
+    borderRadius: 25,
+    height: 50,
+    width: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 3,
   },
 });
+
+export default GeminiChat;

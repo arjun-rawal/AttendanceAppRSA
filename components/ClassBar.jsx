@@ -23,7 +23,7 @@ const HomeNavBar = ({ initialIndex }) => {
       <Tab value={activeIndex} onChange={handleChange} indicatorStyle={styles.indicator}>
         {/* Home Tab */}
         <Tab.Item
-          title="Chat"
+          title="AI Chat"
           titleStyle={{  // Change the font family
             fontSize: 13,                  // Adjust font size
             fontWeight: 'bold',            // Font weight
