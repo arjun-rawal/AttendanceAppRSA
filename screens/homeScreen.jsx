@@ -15,18 +15,21 @@ export default function HomeScreen({ navigation, user }) {
   const StyledText = styled(Text);
   const StyledView = styled(View);
   const StyledButton = styled(Button);
+  const StyledTouchableOpacity = styled(TouchableOpacity);
 
   const [items, setItems] = useState({
     "2025-03-12": [
-      { date: "2025-03-12", name: "Calc 1" },
-      { date: "2025-03-12", name: "Biology 1" },
+      { date: "2025-03-12", name: "History" },
+      { date: "2025-03-12", name: "Mathematics" },
+      { date: "2025-03-12", name: "Science" }
 
     ],
     "2025-03-15": [
-      { date: "2025-03-15", name: "Science Fair", time: "2:00 PM - 4:00 PM" },
+      { date: "2025-03-15", name: "Science", time: "2:00 PM - 4:00 PM" },
+      { date: "2025-03-15", name: "Social Studies", time: "2:00 PM - 4:00 PM" }
     ],
     "2025-03-18": [
-      { date: "2025-03-18", name: "History Project Due", time: "All Day" },
+      { date: "2025-03-18", name: "English", time: "All Day" },
     ],
   });
 
@@ -61,13 +64,14 @@ export default function HomeScreen({ navigation, user }) {
           }}
 
           renderItem={(item) => (
-            <TouchableOpacity
+            <TouchableOpacity 
+              className="mb-0"
               style={styles.item}
               onPress={() =>
-                navigation.navigate("Classes", { selectedDate: item.date })
+                navigation.navigate("AIChat", { selectedDate: item.date })
               }
             >
-              <Text style={styles.itemTitle}>{item.name}</Text>
+              <StyledText style={styles.itemTitle}>{item.name}</StyledText>
             </TouchableOpacity>
           )}
         />

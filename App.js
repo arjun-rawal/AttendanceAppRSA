@@ -13,6 +13,7 @@ import SpecificClass from "./screens/SpecificClass";
 import SettingsScreen from "./screens/SettingsScreen";
 import ClassManagerScreen from "./screens/ClassManagerScreen";
 import HomeScreen from "./screens/homeScreen";
+import AIChat from "./screens/AIChat";
 
 
 const Stack = createStackNavigator();
@@ -69,6 +70,7 @@ export default function App() {
             </Stack.Screen>
             <Stack.Screen name="SpecificClass" component={SpecificClass} options={{ title: "Class" }} />
             <Stack.Screen name="Classes" component={ClassesScreen} options={{ title: "Classes" }} />
+            <Stack.Screen name="AIChat" component={AIChat} options={{ title: "AIChat" }} />
             <Stack.Screen name="Settings" options={{ title: "Settings" }}>
               {(props) => <SettingsScreen {...props} user={user} />}
             </Stack.Screen>
