@@ -3,18 +3,18 @@ import { View, StyleSheet } from "react-native";
 import { Tab, Icon } from "@rneui/themed";
 import { useNavigation } from "@react-navigation/native";
 
-const HomeNavBar = ({ initialIndex }) => {
+const ClassBar = ({ initialIndex, selectedInfo }) => {
   const [activeIndex, setActiveIndex] = useState(initialIndex);
   const navigation = useNavigation();
-
+  console.log("Information the Class Bar got", selectedInfo)
   function handleChange(e) {
     setActiveIndex(e);
     if (e === 0) {
-      navigation.replace("AIChat");
+      navigation.replace("Assistant", selectedInfo);
     } else if (e === 1) {
-      navigation.replace("Documents");
+      navigation.replace("Documents",selectedInfo);
     } else {
-      navigation.replace("Forum");
+      navigation.replace("Forum", selectedInfo);
     }
   }
 
@@ -23,7 +23,7 @@ const HomeNavBar = ({ initialIndex }) => {
       <Tab value={activeIndex} onChange={handleChange} indicatorStyle={styles.indicator}>
         {/* Home Tab */}
         <Tab.Item
-          title="AI Chat"
+          title="Assistant"
           titleStyle={{  // Change the font family
             fontSize: 13,                  // Adjust font size
             fontWeight: 'bold',            // Font weight
@@ -79,4 +79,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HomeNavBar;
+export default ClassBar;

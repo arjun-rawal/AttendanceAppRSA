@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { KeyboardAvoidingView, Platform} from "react-native";
+
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as GoogleGenerativeAI from "@google/generative-ai";
 import ClassBar from "../components/ClassBar";
@@ -18,7 +20,8 @@ import { FontAwesome } from "@expo/vector-icons";
 import { Entypo } from "@expo/vector-icons";
 import FlashMessage, { showMessage } from "react-native-flash-message";
 
-const GeminiChat = ({navigation}) => {
+const GeminiChat = ({navigation, route}) => {
+  console.log("Information the assistant got: ",route.params);
   const [messages, setMessages] = useState([]);
   const [userInput, setUserInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -112,7 +115,7 @@ const GeminiChat = ({navigation}) => {
         keyExtractor={(item) => item.text}
         inverted
       />
-      <View style={styles.inputContainer}>
+      <KeyboardAvoidingView style={styles.inputContainer}>
         <TouchableOpacity style={styles.micIcon} onPress={toggleSpeech}>
           {isSpeaking ? (
             <FontAwesome
@@ -153,9 +156,9 @@ const GeminiChat = ({navigation}) => {
           )
         }
         {/* {loading && <ActivityIndicator size="large" color="black" />} */}
-      </View>
+      </KeyboardAvoidingView>
     </View>
-    <ClassBar initialIndex={0} navigation={navigation}/>
+    <ClassBar initialIndex={0} navigation={navigation} selectedInfo={route.params}/>
     </SafeAreaView>
   );
 };
@@ -164,7 +167,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#ffff", marginTop: 50 },
   messageContainer: { padding: 10, marginVertical: 5 },
   messageText: { fontSize: 16 },
-  inputContainer: { flexDirection: "row", alignItems: "center", padding: 10 },
+  inputContainer: { flexDirection: "row", alignItems: "center", padding: 50 },
   input: {
     flex: 1,
     padding: 10,

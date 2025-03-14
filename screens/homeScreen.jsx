@@ -68,7 +68,7 @@ export default function HomeScreen({ navigation, user }) {
               className="mb-0"
               style={styles.item}
               onPress={() =>
-                navigation.navigate("AIChat", { selectedDate: item.date })
+                navigation.navigate("Assistant", { selectedDate: item.date, item: item })
               }
             >
               <StyledText style={styles.itemTitle}>{item.name}</StyledText>
