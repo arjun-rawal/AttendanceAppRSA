@@ -1,19 +1,17 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { StyleSheet, View, ScrollView, TouchableOpacity } from "react-native";
+import { StyleSheet, View, TouchableOpacity, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Calendar } from "react-native-calendars";
-import { AgendaList } from "react-native-calendars";
+import { Calendar, AgendaList } from "react-native-calendars";
 import { Text } from "react-native-elements";
 import HomeNavBar from "../components/HomeNavBar";
-import {LinearGradient} from "expo-linear-gradient";
-import { Image } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import {
   doc,
   getDoc,
   collection,
   getDocs,
   query,
-  where
+  where,
 } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 
@@ -46,6 +44,7 @@ export default function HomeScreen({ navigation, user }) {
   const [agendaItems, setAgendaItems] = useState({});
   const [loading, setLoading] = useState(true);
 
+  // Fetch user info and build marked dates and agenda items.
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
@@ -54,89 +53,76 @@ export default function HomeScreen({ navigation, user }) {
           return;
         }
 
-        // 1) Load the user's doc
+        // 1) Load the user's document
         const userRef = doc(db, "users", user.uid);
         const userSnap = await getDoc(userRef);
         if (!userSnap.exists()) {
           console.log("User doc not found");
           setLoading(false);
           return;
-        } 
-
+        }
         const userData = userSnap.data();
         // daysMissed: an array of Timestamps
         const daysMissed = userData.daysMissed || [];
         // classes: an array of class IDs
         const userClassIds = userData.Classes || [];
-        console.log(userClassIds) 
-        // If user has no missed days, we can stop early
+        console.log(userClassIds);
+        // If user has no missed days, stop early.
         if (daysMissed.length === 0) {
           setLoading(false);
           return;
         }
 
         // 2) Fetch each relevant class doc from "Classes"
-        //    We assume each doc has: { Id: "abc123", name: "Math 101", Content: [ { Day: Timestamp, title?: string, ...}, ... ] }
         if (userClassIds.length === 0) {
-          // user has missed days but no classes? We'll show them as "No classes"
           setLoading(false);
           return;
         }
-
-        // Firestore "in" queries can handle up to 10 items at once.
         const classesRef = collection(db, "Classes");
-        console.log(userClassIds)
+        console.log(userClassIds);
         const q = query(classesRef, where("Id", "in", userClassIds));
         const classSnap = await getDocs(q);
- 
-        // Build an array of { className, contentArray }
+        // Build an array of { className, content }
         const classesData = [];
         classSnap.forEach((docSnap) => {
-
           const cData = docSnap.data();
           classesData.push({
             className: cData.Name,
-            content: cData.Content || []
+            content: cData.Content || [],
           });
         });
-        console.log("MM", classesData)
+        console.log("MM", classesData);
 
-        // 3) Build newMarkedDates & newAgendaItems by matching each day in daysMissed
-        //    with each class's Content item if the day matches
+        // 3) Build newMarkedDates & newAgendaItems
         const newMarkedDates = {};
         const newAgendaItems = {};
 
         daysMissed.forEach((missedDayTS) => {
-          // Mark the date on the calendar
           const dateString = timestampToDateString(missedDayTS);
           newMarkedDates[dateString] = {
             selected: true,
-            selectedColor: "red"
+            selectedColor: "red",
           };
 
           if (!newAgendaItems[dateString]) {
             newAgendaItems[dateString] = [];
           }
 
-          // Check each class for matching content
           classesData.forEach(({ className, content }) => {
-            // e.g. content might be [ { Day: Timestamp, title: "Ch 1" }, ...]
             content.forEach((item) => {
               if (item.Day && isSameDay(missedDayTS, item.Day)) {
-                // Found a match: user missed this class on this day
                 const itemTitle = item.Material
                   ? `Missed ${className} - ${item.Material}`
                   : `Missed ${className}`;
                 newAgendaItems[dateString].push({
                   date: dateString,
-                  name: itemTitle
+                  name: itemTitle,
                 });
               }
             });
           });
         });
 
-        // 4) Store them in state
         setMarkedDates(newMarkedDates);
         setAgendaItems(newAgendaItems);
       } catch (error) {
@@ -150,7 +136,7 @@ export default function HomeScreen({ navigation, user }) {
   }, [user]);
 
   /**
-   * Convert our agendaItems object -> an array of { title, data: []}
+   * Convert our agendaItems object -> an array of { title, data: [] }
    * for <AgendaList>.
    */
   const convertToSections = (items) => {
@@ -158,7 +144,7 @@ export default function HomeScreen({ navigation, user }) {
     Object.keys(items).forEach((date) => {
       sections.push({
         title: date,
-        data: items[date]
+        data: items[date],
       });
     });
     return sections;
@@ -166,108 +152,118 @@ export default function HomeScreen({ navigation, user }) {
 
   const sections = convertToSections(agendaItems);
 
-  // Renders each item in the AgendaList
-  const renderItem = useCallback(({ item }) => {
-    // item: { date: "YYYY-MM-DD", name: "Missed Math 101 - Chapter 1" }
-    return (
-      
-      <TouchableOpacity style={styles.item} onPress={() => handleNavigate(item)}>
-        <Text style={styles.itemTitle}>{item.name}</Text>
-      </TouchableOpacity>
-    );
-  }, [handleNavigate]);
+  // Define handleNavigate before using it.
+  const handleNavigate = (item) => {
+    navigation.navigate("Assistant", { selectedDate: item.date, item: item });
+  };
 
-  function handleNavigate(item){
-    navigation.navigate("Assistant", { selectedDate: item.date, item: item })
-  }
-  const ChatBubble = ({ message}) => {
+  // Renders each agenda item.
+  const renderItem = useCallback(
+    ({ item }) => {
+      return (
+        <TouchableOpacity style={styles.item} onPress={() => handleNavigate(item)}>
+          <Text style={styles.itemTitle}>{item.name}</Text>
+        </TouchableOpacity>
+      );
+    },
+    [handleNavigate]
+  );
+
+  // ChatBubble component (as before)
+  const ChatBubble = ({ message }) => {
     return (
-      <View className={`relative bg-white rounded-xl py-4 px-6 mb max-w-[80%]`}>
-        <Text className="text-black font-semibold ">{message}</Text>
-  
-        {/* Pointed tip (little triangle) at the bottom-right */}
-        <View className="absolute bottom-0 right-0 w-0 h-0 border-l-8 border-r-8 border-t-8 border-transparent border-t-white" />
+      <View style={styles.chatBubble}>
+        <Text style={styles.chatBubbleText}>{message}</Text>
+        <View style={styles.chatBubbleTip} />
       </View>
     );
   };
 
-  return (
-    <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
-       <LinearGradient colors={['rgba(255, 122, 43, 0.8)', 'rgba(255, 184, 77, 0.8)', 'rgba(255, 122, 43, 0.8)']}
-
-      className="w-full flex-1">
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text className="font-extrabold text-left text-3xl text-white mt-5 ml-5">
-          Welcome 
-        </Text>
-        <Text className="font-extrabold text-left text-2xl text-white ml-5 mb-2">
+  // HeaderContent for AgendaList, containing the welcome text, chat bubble, image, and Calendar.
+  const HeaderContent = () => (
+    <>
+      <Text className="font-extrabold text-left text-3xl text-white mt-5 ml-5">
+        Welcome
+      </Text>
+      <Text className="font-extrabold text-left text-2xl text-white ml-5 mb-2">
         {user?.email}!
+      </Text>
+      <View className="flex-row items-center mb-2 ml-2 mr-8">
+        <ChatBubble message="Hey there! You currently have x absences. Don't worry, we're going to get you all caught up!" />
+        <Image
+          source={require("../assets/ketchup_bot.png")}
+          className="w-24 h-28 rounded-full border-4 border-white ml-2 mr-4 mt-2 mb-2 p-2"
+        />
+      </View>
+      <Calendar
+        className="border-[5px] border-white rounded-md ml-3 mr-3"
+        hideExtraDays={false}
+        firstDay={1}
+        markedDates={markedDates}
+        theme={{
+          selectedDayBackgroundColor: "#4A90E2",
+          selectedDayTextColor: "white",
+          todayTextColor: "#FF7F50",
+          todayBackgroundColor: "transparent",
+          arrowColor: "#f4511e",
+          monthTextColor: "#f4311e",
+          textDayFontFamily: "Poppins",
+          textMonthFontFamily: "Poppins",
+          textDayHeaderFontFamily: "Poppins",
+          textDayFontWeight: "700",
+          textMonthFontWeight: "800",
+          textDayHeaderFontWeight: "400",
+          textDayFontSize: 16,
+          textMonthFontSize: 22,
+          textDayHeaderFontSize: 14,
+        }}
+      />
+      {Object.keys(agendaItems).length === 0 && (
+        <Text style={{ textAlign: "center", marginTop: 20 }}>
+          No missed days
         </Text>
-        <View className="flex-row items-center mb-2 ml-2 mr-8">
-        <ChatBubble message="Hey there! You currently have x absences. Don't worry, we're going to get you all caught up!"/> {/*Need Arjun to implement actual absence*/}
-        <Image  source={require('../assets/ketchup_bot.png')}  className="w-24 h-28 rounded-full border-4 border-white ml-2 mr-4 mt-2 mb-2 p-2"/>
-        </View>
-        {loading ? (
-          <Text style={{ textAlign: "center", marginVertical: 20 }}>
+      )}
+    </>
+  );
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea} edges={["left", "right"]}>
+        <LinearGradient
+          colors={[
+            "rgba(255, 122, 43, 0.8)",
+            "rgba(255, 184, 77, 0.8)",
+            "rgba(255, 122, 43, 0.8)",
+          ]}
+          className="w-full flex-1"
+        >
+          <Text style={{ textAlign: "center", marginVertical: 20, color: "white" }}>
             Loading...
           </Text>
-        ) : (
-          <>
-            {/* Show a non-expandable calendar that always shows the full month */}
-            <Calendar className="border-[5px] border-white rounded-md width ml-3 mr-3"
-              hideExtraDays={false}
-              firstDay={1}
-              markedDates={markedDates}
+        </LinearGradient>
+        <HomeNavBar initialIndex={0} navigation={navigation} />
+      </SafeAreaView>
+    );
+  }
 
-              theme={{
-                // Selected Day
-                selectedDayBackgroundColor: '#4A90E2', // Soft blue background for selected day
-                selectedDayTextColor: 'white', // White text on selected day
-                
-                // Today
-                todayTextColor: '#FF7F50', // Coral color for today's text
-                todayBackgroundColor: 'transparent', // Transparent background for today
-                
-                // Arrows
-                arrowColor: '#f4511e', // Dark gray for arrows (previous/next month)
-                
-                // Month Title
-                monthTextColor: '#f4311e', // Dark gray for month title
-          
-                
-                // Fonts
-                textDayFontFamily: 'Poppins', // Modern sans-serif font for the day text
-                textMonthFontFamily: 'Poppins', // Modern sans-serif font for the month title
-                textDayHeaderFontFamily: 'Poppins', // Consistent font for day headers
-                
-                // Font Weight
-                textDayFontWeight: '700', // Semi-bold weight for day text for better readability
-                textMonthFontWeight: '800', // Semi-bold weight for month text
-                textDayHeaderFontWeight: '400', // Lighter weight for day headers (Mon, Tue, etc.)
-                
-                // Font Size
-                textDayFontSize: 16, // Smaller, more refined day font size
-                textMonthFontSize: 22, // Slightly larger month text
-                textDayHeaderFontSize: 14, // Smaller header font size for day headers (Mon, Tue, etc.)
-              }}
-            />
-
-            {/* If no missed days => show "No missed days" */}
-            {Object.keys(agendaItems).length === 0 ? (
-              <Text style={{ textAlign: "center", marginTop: 20 }}>
-                No missed days
-              </Text>
-            ) : (
-              <AgendaList
-                sections={sections}
-                renderItem={renderItem}
-                sectionStyle={styles.sectionStyle}
-                showsVerticalScrollIndicator
-              />
-            )}
-          </>
-        )}
-      </ScrollView>
+  return (
+    <SafeAreaView style={styles.safeArea} edges={["left", "right"]}>
+      <LinearGradient
+        colors={[
+          "rgba(255, 122, 43, 0.8)",
+          "rgba(255, 184, 77, 0.8)",
+          "rgba(255, 122, 43, 0.8)",
+        ]}
+        style={styles.linearGradient}
+      >
+        <AgendaList
+          sections={sections}
+          renderItem={renderItem}
+          sectionStyle={styles.sectionStyle}
+          showsVerticalScrollIndicator
+          ListHeaderComponent={HeaderContent}
+          contentContainerStyle={styles.agendaListContainer}
+        />
       </LinearGradient>
       <HomeNavBar initialIndex={0} navigation={navigation} />
     </SafeAreaView>
@@ -277,29 +273,20 @@ export default function HomeScreen({ navigation, user }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#f0f0f0"
+    backgroundColor: "#f0f0f0",
   },
-  scrollContent: {
+  linearGradient: {
+    flex: 1,
+  },
+  agendaListContainer: {
     paddingBottom: 100,
-  },
-  welcomeText: {
-    textAlign: "center",
-    marginVertical: 10
-  },
-  calendar: {
-    minHeight: 370,
-    marginHorizontal: 10,
-    marginBottom: 10,
-    borderRadius: 10,
-    borderColor: "teal",
-    borderWidth: 2,
   },
   sectionStyle: {
     backgroundColor: "#ddd",
     padding: 5,
     marginHorizontal: 10,
     marginTop: 10,
-    borderRadius: 5
+    borderRadius: 5,
   },
   item: {
     backgroundColor: "white",
@@ -311,28 +298,37 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
-    elevation: 2
+    elevation: 2,
   },
   itemTitle: {
     fontWeight: "bold",
-    fontSize: 16
+    fontSize: 16,
   },
-  button: {
-    backgroundColor: "#f4511e",
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    marginVertical: 5,
+  chatBubble: {
+    position: "relative",
+    backgroundColor: "white",
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    marginBottom: 10,
+    maxWidth: "80%",
   },
-  buttonText: {
-    color: "white",
-    fontSize: 18,
+  chatBubbleText: {
+    color: "black",
     fontWeight: "600",
-    letterSpacing: 1,
-  }
+  },
+  chatBubbleTip: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    width: 0,
+    height: 0,
+    borderLeftWidth: 8,
+    borderRightWidth: 8,
+    borderTopWidth: 8,
+    borderStyle: "solid",
+    borderLeftColor: "transparent",
+    borderRightColor: "transparent",
+    borderTopColor: "white",
+  },
 });
