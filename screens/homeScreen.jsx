@@ -6,6 +6,7 @@ import { AgendaList } from "react-native-calendars";
 import { Text } from "react-native-elements";
 import HomeNavBar from "../components/HomeNavBar";
 import {LinearGradient} from "expo-linear-gradient";
+import { Image } from "react-native";
 import {
   doc,
   getDoc,
@@ -176,6 +177,18 @@ export default function HomeScreen({ navigation, user }) {
     );
   }, []);
 
+  
+  const ChatBubble = ({ message}) => {
+    return (
+      <View className={`relative bg-white rounded-xl py-4 px-6 mb max-w-[80%]`}>
+        <Text className="text-black font-semibold ">{message}</Text>
+  
+        {/* Pointed tip (little triangle) at the bottom-right */}
+        <View className="absolute bottom-0 right-0 w-0 h-0 border-l-8 border-r-8 border-t-8 border-transparent border-t-white" />
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
        <LinearGradient colors={['rgba(255, 122, 43, 0.8)', 'rgba(255, 184, 77, 0.8)', 'rgba(255, 122, 43, 0.8)']}
@@ -188,7 +201,10 @@ export default function HomeScreen({ navigation, user }) {
         <Text className="font-extrabold text-left text-2xl text-white ml-5 mb-2">
         {user?.email}!
         </Text>
-
+        <View className="flex-row items-center mb-2 ml-2 mr-8">
+        <ChatBubble message="Hey there! You currently have x absences. Don't worry, we're going to get you all caught up!"/> {/*Need Arjun to implement actual absence*/}
+        <Image  source={require('../assets/ketchup_bot.png')}  className="w-24 h-28 rounded-full border-4 border-white ml-2 mr-4 mt-2 mb-2 p-2"/>
+        </View>
         {loading ? (
           <Text style={{ textAlign: "center", marginVertical: 20 }}>
             Loading...
@@ -298,5 +314,23 @@ const styles = StyleSheet.create({
   itemTitle: {
     fontWeight: "bold",
     fontSize: 16
+  },
+  button: {
+    backgroundColor: "#f4511e",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    marginVertical: 5,
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "600",
+    letterSpacing: 1,
   }
 });

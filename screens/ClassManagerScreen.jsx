@@ -6,6 +6,7 @@ import { styled } from "nativewind";
 import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebaseConfig"; // import your Firestore db
 import HomeNavBar from "../components/HomeNavBar";
+import { LinearGradient } from "expo-linear-gradient";
 
 export default function ClassManagerScreen({ navigation, user }) {
   const [classes, setClasses] = useState([]);
@@ -86,20 +87,28 @@ export default function ClassManagerScreen({ navigation, user }) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Manage Your Classes</Text>
+    <SafeAreaView style={styles.container} edges={['left', 'right']}>
+      <LinearGradient colors={[
+  'rgba(153, 0, 0, 0.8)',  // Darker red
+  'rgba(204, 0, 0, 0.8)',  // A brighter but still dark red for a smooth gradient
+  'rgba(153, 0, 0, 0.8)'   // Same darker red for consistency
+]}
+      className="w-full flex-1">
+      <Text className="mt-6 text-2xl font-extrabold text-white text-center ">Manage Your Classes</Text>
 
       {/* Buttons for Syncing & Adding Classes */}
       <View style={styles.buttonContainer}>
         <Button
           title="Sync Google Classroom"
           onPress={syncGoogleClassroom}
+          className="mt-2 ml-4 mr-4 "
           buttonStyle={styles.button}
           titleStyle={styles.buttonText}
         />
         <Button
           title="Add Class Manually"
           onPress={addClassManually}
+          className="ml-4 mr-4"
           buttonStyle={styles.button}
           titleStyle={styles.buttonText}
         />
@@ -108,7 +117,7 @@ export default function ClassManagerScreen({ navigation, user }) {
       {loading ? (
         <Text style={{ textAlign: "center", marginTop: 20 }}>Loading...</Text>
       ) : classes.length === 0 ? (
-        <Text style={{ textAlign: "center", marginTop: 20 }}>No classes</Text>
+        <Text className="mt-2 text-xl font-extrabold text-white text-center ">No Classes Added</Text>
       ) : (
         // Scrollable List of Classes
         <FlatList
@@ -122,7 +131,7 @@ export default function ClassManagerScreen({ navigation, user }) {
           )}
         />
       )}
-
+      </LinearGradient>
       <HomeNavBar initialIndex={1} navigation={navigation} />
     </SafeAreaView>
   );
@@ -131,7 +140,6 @@ export default function ClassManagerScreen({ navigation, user }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     backgroundColor: "#fff",
   },
   title: {
@@ -146,7 +154,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   button: {
-    backgroundColor: "#007BFF",
+    backgroundColor: "#f4511e",
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,

@@ -6,6 +6,7 @@ import { signOut, deleteUser } from "firebase/auth";
 import { auth } from "../firebaseConfig";
 import HomeNavBar from "../components/HomeNavBar";
 import { styled } from "nativewind";
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function SettingsScreen({ navigation, user }) {
   // Function to delete classes (Replace with actual logic)
@@ -46,35 +47,49 @@ export default function SettingsScreen({ navigation, user }) {
 
   return (
     <>
-    <SafeAreaView style={styles.container}>
-      <StyledText className="text-center border rounded-full  border-[#d83e3e]">Welcome {user.email}!</StyledText>
-
+    <SafeAreaView style={styles.container} edges={['left, right']}>
+     <LinearGradient colors={['rgba(255, 122, 43, 0.8)', 'rgba(255, 184, 77, 0.8)', 'rgba(255, 122, 43, 0.8)']}
+      className="flex-1 w-full">
+     <Text className="font-extrabold text-left text-3xl text-white ml-5 mt-2 text-center">
+               Welcome
+             </Text>
+             <Text className="font-extrabold text-left text-2xl text-white ml-5 mb-2">
+             {user?.email}!
+             </Text>
+      
       <Button
         title="Sign Out"
         onPress={() => signOut(auth).catch((err) => console.error(err))}
         buttonStyle={styles.button}
+        titleStyle={styles.buttonText}
+        className="ml-2 mr-2 mt-2"
       />
 
       <Button
         title="Delete Classes"
         onPress={handleDeleteClasses}
         buttonStyle={[styles.button, { backgroundColor: "orange" }]}
+        titleStyle={styles.buttonText}
+        className="ml-2 mr-2 mt-2"
       />
 
       <Button
         title="Delete Account"
         onPress={handleDeleteAccount}
         buttonStyle={[styles.button, { backgroundColor: "red" }]}
+        titleStyle={styles.buttonText}
+        className="ml-2 mr-2 mt-2"
       />
 
-      <View style={styles.linksContainer}>
-        <Text style={styles.link} onPress={() => Linking.openURL("https://yourwebsite.com/privacy-policy")}>
+      <View className="justify-center items-center mt-80">
+        <Text className="font-extrabold underline text-white " onPress={() => Linking.openURL("https://yourwebsite.com/privacy-policy")}>
           Privacy Policy
         </Text>
-        <Text style={styles.link} onPress={() => Linking.openURL("https://yourwebsite.com/terms-of-service")}>
+        <Text className="font-extrabold underline text-white mt-1" onPress={() => Linking.openURL("https://yourwebsite.com/terms-of-service")}>
           Terms of Service
         </Text>
       </View>
+      </LinearGradient>
       <HomeNavBar initialIndex={2} />
 
     </SafeAreaView>
@@ -94,9 +109,22 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   button: {
-    width: "80%",
-    marginVertical: 10,
-    alignSelf: 'center'
+    backgroundColor: "#f4511e",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    marginVertical: 5,
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "600",
+    letterSpacing: 1,
   },
   linksContainer: {
     marginTop: 20,
