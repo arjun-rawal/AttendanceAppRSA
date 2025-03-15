@@ -2,46 +2,56 @@ import React, { useState, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "./firebaseConfig";
-import LottieView from "lottie-react-native"; // Import Lottie
-import { View, StyleSheet } from "react-native";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "./firebaseConfig";
+import LottieView from "lottie-react-native";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
 
-// Import Screens
 import LoginSignupScreen from "./screens/LoginSignupScreen";
 import ClassesScreen from "./screens/ClassesScreen";
-import SpecificClass from "./screens/SpecificClass";
+import SpecificClass from "./screens/SpecificClass"; 
 import SettingsScreen from "./screens/SettingsScreen";
 import ClassManagerScreen from "./screens/ClassManagerScreen";
 import HomeScreen from "./screens/homeScreen";
 import AIChat from "./screens/Assistant";
 import ForumScreen from "./screens/Forum";
-
+import ContentScreen from "./screens/ContentScreen";
+import EditContentScreen from "./screens/EditContentScreen";
+import TeacherDashboard from "./screens/TeacherDashboard";
 
 const Stack = createStackNavigator();
 
 export default function App() {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); 
+  const [role, setRole] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
-      setTimeout(() => setLoading(false), 1100); 
+      if (currentUser) {
+        try {
+          const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+          if (userDoc.exists()) {
+            setRole(userDoc.data().role);
+          } else {
+            console.error("User document not found!");
+            setRole(null);
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+          setRole(null);
+        }
+      }
+      setLoading(false);
     });
-
     return unsubscribe;
   }, []);
 
   if (loading) {
     return (
       <View style={styles.splashContainer}>
-        <LottieView
-          source={require("./assets/splash.json")} 
-          autoPlay
-          loop={false}
-          style={styles.lottie}
-          resizeMode="cover"
-        />
+        <ActivityIndicator size="large" color="#f4511e" />
       </View>
     );
   }
@@ -49,7 +59,6 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName={user ? "Home" : "Login"}
         screenOptions={{
           gestureEnabled: true,
           transitionSpec: {
@@ -62,21 +71,46 @@ export default function App() {
           animation: "fade",
         }}
       >
-        {!user ? (
-          <Stack.Screen name="Login" component={LoginSignupScreen} options={{ headerShown: false }} />
-        ) : (
+        {!user && (
+          <Stack.Screen
+            name="Login"
+            component={LoginSignupScreen}
+            options={{ headerShown: false }}
+          />
+        )}
+
+        {user && role === "teacher" && (
           <>
-            <Stack.Screen name="Home" options={{ title: "Calendar" }}>
+            <Stack.Screen
+              name="TeacherDashboard"
+              options={{ title: "Teacher Dashboard" }}
+            >
+              {(props) => <TeacherDashboard {...props} user={user} />}
+            </Stack.Screen>
+
+          </>
+        )}
+
+        {user && role !== "teacher" && (
+          <>
+            <Stack.Screen
+              name="Home"
+              options={{ title: "Calendar" }}
+            >
               {(props) => <HomeScreen {...props} user={user} />}
             </Stack.Screen>
-            <Stack.Screen name="SpecificClass" component={SpecificClass} options={{ title: "Class" }} />
-            <Stack.Screen name="Classes" component={ClassesScreen} options={{ title: "Classes" }} />
-            <Stack.Screen name="Assistant" component={AIChat} options={{ title: "Assistant" }} />
-            <Stack.Screen name="Forum" component={ForumScreen} options={{ title: "Forum" }} />
-            <Stack.Screen name="Settings" options={{ title: "Settings" }}>
-              {(props) => <SettingsScreen {...props} user={user} />}
+            <Stack.Screen name="Classes">
+              {(props) => <ClassesScreen {...props} user={user} />}
             </Stack.Screen>
-            <Stack.Screen name="ClassManager" component={ClassManagerScreen} options={{ title: "Classes" }} />
+            <Stack.Screen name="Assistant">
+              {(props) => <AIChat {...props} user={user} />}
+            </Stack.Screen>
+            <Stack.Screen name="Forum">
+              {(props) => <ForumScreen {...props} user={user} />}
+            </Stack.Screen>
+            <Stack.Screen name="Content">
+              {(props) => <ContentScreen {...props} user={user} />}
+            </Stack.Screen>
           </>
         )}
       </Stack.Navigator>
@@ -89,11 +123,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#fff", // Change background if needed
-  },
-  lottie: {
-    flex: 1, // Expands to full screen
-    width: "100%",
-    height: "100%",
+    backgroundColor: "#fff",
   },
 });

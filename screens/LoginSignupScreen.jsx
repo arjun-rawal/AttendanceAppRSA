@@ -1,19 +1,23 @@
+// LoginSignupScreen.jsx
 import React, { useState, useEffect, useRef } from "react";
-import { View, ActivityIndicator, StyleSheet, Animated } from "react-native";
+import { View, ActivityIndicator, StyleSheet, Animated, TouchableOpacity, Text as RNText } from "react-native";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebaseConfig";
+import { auth, db } from "../firebaseConfig";
+import { doc, setDoc } from "firebase/firestore";
 import { Text, Input, Button, Card } from "react-native-elements";
-import {styled} from 'nativewind';
+import { styled } from 'nativewind';
 
 export default function EnhancedAuthScreen() {
   const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("parent"); // default role
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const StyledButton = styled(Button);
+
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: 1,
@@ -26,10 +30,16 @@ export default function EnhancedAuthScreen() {
     setErrorMsg("");
     setLoading(true);
     try {
+      let userCredential;
       if (mode === "login") {
-        await signInWithEmailAndPassword(auth, email.trim(), password);
+        userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
       } else {
-        await createUserWithEmailAndPassword(auth, email.trim(), password);
+        userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
+        // Save user role to Firestore for new users
+        await setDoc(doc(db, "users", userCredential.user.uid), {
+          email: email.trim(),
+          role: role,
+        });
       }
     } catch (error) {
       setErrorMsg(error.message);
@@ -72,6 +82,26 @@ export default function EnhancedAuthScreen() {
             leftIcon={{ type: "material", name: "lock", color: "#f4511e" }}
           />
 
+          {mode === "signup" && (
+            <View style={styles.roleContainer}>
+              <RNText style={styles.roleLabel}>Select Role:</RNText>
+              <View style={styles.roleButtons}>
+                <TouchableOpacity 
+                  style={[styles.roleButton, role === "parent" && styles.selectedRole]}
+                  onPress={() => setRole("parent")}
+                >
+                  <RNText style={styles.roleButtonText}>Parent</RNText>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[styles.roleButton, role === "teacher" && styles.selectedRole]}
+                  onPress={() => setRole("teacher")}
+                >
+                  <RNText style={styles.roleButtonText}>Teacher</RNText>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
           {errorMsg ? <Text style={styles.errorText}>{errorMsg}</Text> : null}
 
           <StyledButton
@@ -93,7 +123,6 @@ export default function EnhancedAuthScreen() {
             onPress={toggleMode}
             titleStyle={{ color: "#f4511e", fontFamily: "Georgia" }}
             className="text-center"
-          
           />
         </Card>
       </Animated.View>
@@ -145,6 +174,31 @@ const styles = StyleSheet.create({
   buttonText: {
     fontFamily: "cursive",
     fontWeight: "bold",
-
-  }
+  },
+  roleContainer: {
+    marginVertical: 10,
+    alignItems: "center",
+  },
+  roleLabel: {
+    fontSize: 16,
+    marginBottom: 5,
+  },
+  roleButtons: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
+  },
+  roleButton: {
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "#f4511e",
+    borderRadius: 5,
+    marginHorizontal: 5,
+  },
+  selectedRole: {
+    backgroundColor: "#fadeb1"
+  },
+  roleButtonText: {
+    color: "#f4511e",
+  },
 });

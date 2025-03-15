@@ -1,124 +1,260 @@
-import React, { useState } from "react";
-import { StyleSheet, View, TouchableOpacity } from "react-native";
-import { Agenda } from "react-native-calendars";
-import { Button, Text } from "react-native-elements";
+import React, { useCallback, useEffect, useState } from "react";
+import { StyleSheet, View, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { signOut } from "firebase/auth";
-import { auth } from "../firebaseConfig";
+import { Calendar } from "react-native-calendars";
+import { AgendaList } from "react-native-calendars";
+import { Text } from "react-native-elements";
 import HomeNavBar from "../components/HomeNavBar";
-import { styled } from "nativewind";
+import {
+  doc,
+  getDoc,
+  collection,
+  getDocs,
+  query,
+  where
+} from "firebase/firestore";
+import { db } from "../firebaseConfig";
 
+/**
+ * Compare two Firestore Timestamps by day, month, and year (ignoring time).
+ */
+function isSameDay(ts1, ts2) {
+  const d1 = ts1.toDate();
+  const d2 = ts2.toDate();
+  return (
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate()
+  );
+}
+
+/**
+ * Convert a Firestore Timestamp -> "YYYY-MM-DD" for Calendar / Agenda.
+ */
+function timestampToDateString(timestamp) {
+  const dateObj = timestamp.toDate();
+  const year = dateObj.getFullYear();
+  const month = (`0${dateObj.getMonth() + 1}`).slice(-2);
+  const day = (`0${dateObj.getDate()}`).slice(-2);
+  return `${year}-${month}-${day}`;
+}
 
 export default function HomeScreen({ navigation, user }) {
-  // Sample events for different days.
-  // Each event includes its date so we know which date to navigate with.
-  const StyledText = styled(Text);
-  const StyledView = styled(View);
-  const StyledButton = styled(Button);
-  const StyledTouchableOpacity = styled(TouchableOpacity);
+  const [markedDates, setMarkedDates] = useState({});
+  const [agendaItems, setAgendaItems] = useState({});
+  const [loading, setLoading] = useState(true);
 
-  const [items, setItems] = useState({
-    "2025-03-12": [
-      { date: "2025-03-12", name: "History" },
-      { date: "2025-03-12", name: "Mathematics" },
-      { date: "2025-03-12", name: "Science" }
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        if (!user?.uid) {
+          setLoading(false);
+          return;
+        }
 
-    ],
-    "2025-03-15": [
-      { date: "2025-03-15", name: "Science", time: "2:00 PM - 4:00 PM" },
-      { date: "2025-03-15", name: "Social Studies", time: "2:00 PM - 4:00 PM" }
-    ],
-    "2025-03-18": [
-      { date: "2025-03-18", name: "English", time: "All Day" },
-    ],
-  });
+        // 1) Load the user's doc
+        const userRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) {
+          console.log("User doc not found");
+          setLoading(false);
+          return;
+        } 
 
+        const userData = userSnap.data();
+        // daysMissed: an array of Timestamps
+        const daysMissed = userData.daysMissed || [];
+        // classes: an array of class IDs
+        const userClassIds = userData.Classes || [];
+        console.log(userClassIds) 
+        // If user has no missed days, we can stop early
+        if (daysMissed.length === 0) {
+          setLoading(false);
+          return;
+        }
+
+        // 2) Fetch each relevant class doc from "Classes"
+        //    We assume each doc has: { Id: "abc123", name: "Math 101", Content: [ { Day: Timestamp, title?: string, ...}, ... ] }
+        if (userClassIds.length === 0) {
+          // user has missed days but no classes? We'll show them as "No classes"
+          setLoading(false);
+          return;
+        }
+
+        // Firestore "in" queries can handle up to 10 items at once.
+        const classesRef = collection(db, "Classes");
+        console.log(userClassIds)
+        const q = query(classesRef, where("Id", "in", userClassIds));
+        const classSnap = await getDocs(q);
  
+        // Build an array of { className, contentArray }
+        const classesData = [];
+        classSnap.forEach((docSnap) => {
+
+          const cData = docSnap.data();
+          classesData.push({
+            className: cData.Name,
+            content: cData.Content || []
+          });
+        });
+        console.log("MM", classesData)
+
+        // 3) Build newMarkedDates & newAgendaItems by matching each day in daysMissed
+        //    with each class's Content item if the day matches
+        const newMarkedDates = {};
+        const newAgendaItems = {};
+
+        daysMissed.forEach((missedDayTS) => {
+          // Mark the date on the calendar
+          const dateString = timestampToDateString(missedDayTS);
+          newMarkedDates[dateString] = {
+            selected: true,
+            selectedColor: "red"
+          };
+
+          if (!newAgendaItems[dateString]) {
+            newAgendaItems[dateString] = [];
+          }
+
+          // Check each class for matching content
+          classesData.forEach(({ className, content }) => {
+            // e.g. content might be [ { Day: Timestamp, title: "Ch 1" }, ...]
+            content.forEach((item) => {
+              if (item.Day && isSameDay(missedDayTS, item.Day)) {
+                // Found a match: user missed this class on this day
+                const itemTitle = item.Material
+                  ? `Missed ${className} - ${item.Material}`
+                  : `Missed ${className}`;
+                newAgendaItems[dateString].push({
+                  date: dateString,
+                  name: itemTitle
+                });
+              }
+            });
+          });
+        });
+
+        // 4) Store them in state
+        setMarkedDates(newMarkedDates);
+        setAgendaItems(newAgendaItems);
+      } catch (error) {
+        console.error("Error fetching user data for missed days:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserInfo();
+  }, [user]);
+
+  /**
+   * Convert our agendaItems object -> an array of { title, data: []}
+   * for <AgendaList>.
+   */
+  const convertToSections = (items) => {
+    const sections = [];
+    Object.keys(items).forEach((date) => {
+      sections.push({
+        title: date,
+        data: items[date]
+      });
+    });
+    return sections;
+  };
+
+  const sections = convertToSections(agendaItems);
+
+  // Renders each item in the AgendaList
+  const renderItem = useCallback(({ item }) => {
+    // item: { date: "YYYY-MM-DD", name: "Missed Math 101 - Chapter 1" }
+    return (
+      <View style={styles.item}>
+        <Text style={styles.itemTitle}>{item.name}</Text>
+      </View>
+    );
+  }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Example welcome text */}
-      <StyledText className="text-center font-bold  shadow text-2xl mb-5 ml-2 mr-2">Welcome {user.email}!</StyledText>
-      <StyledText className="text-center font-bold border rounded-full shadow text-xl border-solid mt-1 ml-2 mr-2">Absence Count: 3</StyledText>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <Text h3 style={styles.welcomeText}>
+          Welcome {user?.email}!
+        </Text>
 
-      <StyledText className="text-center font-bold mt-3 mb-3 text-xl">Calendar: </StyledText>
+        {loading ? (
+          <Text style={{ textAlign: "center", marginVertical: 20 }}>
+            Loading...
+          </Text>
+        ) : (
+          <>
+            {/* Show a non-expandable calendar that always shows the full month */}
+            <Calendar
+              style={styles.calendar}
+              hideExtraDays={false}
+              firstDay={1}
+              markedDates={markedDates}
+            />
 
-      <View style={styles.agendaContainer}>
-        <Agenda
-          items={items}
+            {/* If no missed days => show "No missed days" */}
+            {Object.keys(agendaItems).length === 0 ? (
+              <Text style={{ textAlign: "center", marginTop: 20 }}>
+                No missed days
+              </Text>
+            ) : (
+              <AgendaList
+                sections={sections}
+                renderItem={renderItem}
+                sectionStyle={styles.sectionStyle}
+                showsVerticalScrollIndicator
+              />
+            )}
+          </>
+        )}
+      </ScrollView>
 
-
-          markedDates={{
-            "2025-03-12": {
-              selected: true,
-              selectedColor: "red",
-            },
-            "2025-03-15": {
-              selected: true,
-              selectedColor: "red",
-            },
-            "2025-03-18": {
-              selected: true,
-              selectedColor: "red",
-            },
-          }}
-
-          renderItem={(item) => (
-            <TouchableOpacity 
-              className="mb-0"
-              style={styles.item}
-              onPress={() =>
-                navigation.navigate("Assistant", { selectedDate: item.date, item: item })
-              }
-            >
-              <StyledText style={styles.itemTitle}>{item.name}</StyledText>
-            </TouchableOpacity>
-          )}
-        />
-      </View>
-
-      {/* Bottom nav bar */}
       <HomeNavBar initialIndex={0} navigation={navigation} />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#f0f0f0"
   },
-  title: {
+  scrollContent: {
+    paddingBottom: 100
+  },
+  welcomeText: {
     textAlign: "center",
-    marginBottom: 10,
+    marginVertical: 10
   },
-  button: {
-    marginBottom: 10,
+  calendar: {
+    minHeight: 370,
+    marginHorizontal: 10,
+    marginBottom: 10
   },
-  agendaContainer: {
-    flex: 1,
-    
-
+  sectionStyle: {
+    backgroundColor: "#ddd",
+    padding: 5,
+    marginHorizontal: 10,
+    marginTop: 10,
+    borderRadius: 5
   },
   item: {
     backgroundColor: "white",
+    borderRadius: 8,
+    padding: 15,
     marginHorizontal: 10,
     marginVertical: 5,
-    borderRadius: 6,
-    padding: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2
   },
   itemTitle: {
     fontWeight: "bold",
-    fontSize: 16,
-    marginBottom: 3,
-  },
-  itemTime: {
-    fontSize: 14,
-    color: "#666",
-  },
+    fontSize: 16
+  }
 });

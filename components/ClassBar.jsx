@@ -1,3 +1,4 @@
+// ClassBar.jsx
 import React, { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { Tab, Icon } from "@rneui/themed";
@@ -6,13 +7,14 @@ import { useNavigation } from "@react-navigation/native";
 const ClassBar = ({ initialIndex, selectedInfo }) => {
   const [activeIndex, setActiveIndex] = useState(initialIndex);
   const navigation = useNavigation();
-  console.log("Information the Class Bar got", selectedInfo)
+  console.log("Information the Class Bar got", selectedInfo);
+  
   function handleChange(e) {
     setActiveIndex(e);
     if (e === 0) {
       navigation.replace("Assistant", selectedInfo);
     } else if (e === 1) {
-      navigation.replace("Documents",selectedInfo);
+      navigation.replace("Content", selectedInfo);
     } else {
       navigation.replace("Forum", selectedInfo);
     }
@@ -21,37 +23,20 @@ const ClassBar = ({ initialIndex, selectedInfo }) => {
   return (
     <View style={styles.navbarContainer}>
       <Tab value={activeIndex} onChange={handleChange} indicatorStyle={styles.indicator}>
-        {/* Home Tab */}
         <Tab.Item
           title="Assistant"
-          titleStyle={{  // Change the font family
-            fontSize: 13,                  // Adjust font size
-            fontWeight: 'bold',            // Font weight
-            color: 'black',                 // Text color
-          }}
+          titleStyle={{ fontSize: 13, fontWeight: 'bold', color: 'black' }}
           icon={<Icon name="chat" type="entypo" size={28} color={activeIndex === 0 ? "red" : "gray"} />}
         />
-
-        {/* Classes Tab (Newly Added) */}
         <Tab.Item
-          title="Documents"
-          titleStyle={{  // Change the font family
-            fontSize: 13,                  // Adjust font size
-            fontWeight: 'bold',            // Font weight
-            color: 'black',                 // Text color
-          }}
-          icon={<Icon name="documents" type="entypo" size={28} color={activeIndex === 1 ? "red" : "gray"} />}
+          title="Content"
+          titleStyle={{ fontSize: 13, fontWeight: 'bold', color: 'black' }}
+          icon={<Icon name="file-text" type="feather" size={28} color={activeIndex === 1 ? "red" : "gray"} />}
         />
-
-        {/* Settings Tab */}
         <Tab.Item
           title="Forum"
-          titleStyle={{  // Change the font family
-            fontSize: 13,                  // Adjust font size
-            fontWeight: 'bold',            // Font weight
-            color: 'black',                 // Text color
-          }}
-          icon={<Icon name="chat" type="MaterialCommunityIcons" size={28} color={activeIndex === 2 ? "red" : "gray"} />}
+          titleStyle={{ fontSize: 13, fontWeight: 'bold', color: 'black' }}
+          icon={<Icon name="forum" type="material" size={28} color={activeIndex === 2 ? "red" : "gray"} />}
         />
       </Tab>
     </View>
@@ -60,23 +45,19 @@ const ClassBar = ({ initialIndex, selectedInfo }) => {
 
 const styles = StyleSheet.create({
   navbarContainer: {
-    position: "absolute", // Fixed at the bottom
+    position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "white", // Ensures it has a visible background
-    elevation: 5, // Shadow on Android
+    backgroundColor: "white",
+    elevation: 5,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: -2 }, // Shadow above navbar
+    shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     paddingVertical: 8,
-
   },
-  indicator: {
-    backgroundColor: "red",
-    height: 2,
-  },
+  indicator: { backgroundColor: "red", height: 2 },
 });
 
 export default ClassBar;
