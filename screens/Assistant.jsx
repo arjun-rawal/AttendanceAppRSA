@@ -29,7 +29,7 @@ export default function GeminiChat({ navigation, route }) {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [showStopIcon, setShowStopIcon] = useState(false);
 
-  const API_KEY = "AIzaSyBAqZuiYF6kcFzsyN5V8CABzxELi0PTYGg";
+  const API_KEY = "";
   const StyledView = styled(View);
   const StyledText = styled(Text);
   useEffect(() => {
