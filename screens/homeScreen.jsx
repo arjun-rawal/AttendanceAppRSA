@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { StyleSheet, View, ScrollView } from "react-native";
+import { StyleSheet, View, ScrollView, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Calendar } from "react-native-calendars";
 import { AgendaList } from "react-native-calendars";
@@ -171,13 +171,15 @@ export default function HomeScreen({ navigation, user }) {
     // item: { date: "YYYY-MM-DD", name: "Missed Math 101 - Chapter 1" }
     return (
       
-      <View style={styles.item}>
+      <TouchableOpacity style={styles.item} onPress={() => handleNavigate(item)}>
         <Text style={styles.itemTitle}>{item.name}</Text>
-      </View>
+      </TouchableOpacity>
     );
-  }, []);
+  }, [handleNavigate]);
 
-  
+  function handleNavigate(item){
+    navigation.navigate("Assistant", { selectedDate: item.date, item: item })
+  }
   const ChatBubble = ({ message}) => {
     return (
       <View className={`relative bg-white rounded-xl py-4 px-6 mb max-w-[80%]`}>
