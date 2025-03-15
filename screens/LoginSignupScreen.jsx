@@ -6,6 +6,7 @@ import { auth, db } from "../firebaseConfig";
 import { doc, setDoc } from "firebase/firestore";
 import { Text, Input, Button, Card } from "react-native-elements";
 import { styled } from 'nativewind';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function EnhancedAuthScreen() {
   const [mode, setMode] = useState("login");
@@ -56,11 +57,18 @@ export default function EnhancedAuthScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1">
+      <LinearGradient colors={['rgba(255, 80, 43, 0.8)', 'rgba(255, 160, 77, 0.8)', 'rgba(255, 80, 43, 0.8)']}
+
+
+
+
+
+       className="w-full flex-1">
       <Animated.View style={[styles.fadeContainer, { opacity: fadeAnim }]}>
         <Card containerStyle={styles.card}>
           <Text h3 style={styles.title}>
-            {mode === "login" ? "Welcome Back!" : "Create an Account"}
+            {mode === "login" ? "Welcome to Ketchup!" : "Create an Account"}
           </Text>
 
           <Input
@@ -126,6 +134,7 @@ export default function EnhancedAuthScreen() {
           />
         </Card>
       </Animated.View>
+      </LinearGradient>
     </View>
   );
 }
@@ -133,7 +142,7 @@ export default function EnhancedAuthScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f4511e",
+    backgroundColor: "white",
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
@@ -141,9 +150,11 @@ const styles = StyleSheet.create({
   fadeContainer: {
     width: "100%",
     alignItems: "center",
+    justifyContent: "center",
+    flex: 1
   },
   card: {
-    width: "100%",
+    width: "95%",
     maxWidth: 400,
     padding: 20,
     borderRadius: 10,
@@ -152,6 +163,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 6,
     elevation: 8,
+    justifyContent: "center",
+    marginTop: 0,
   },
   title: {
     textAlign: "center",

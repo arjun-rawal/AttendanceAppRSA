@@ -5,6 +5,7 @@ import { Calendar } from "react-native-calendars";
 import { AgendaList } from "react-native-calendars";
 import { Text } from "react-native-elements";
 import HomeNavBar from "../components/HomeNavBar";
+import {LinearGradient} from "expo-linear-gradient";
 import {
   doc,
   getDoc,
@@ -168,6 +169,7 @@ export default function HomeScreen({ navigation, user }) {
   const renderItem = useCallback(({ item }) => {
     // item: { date: "YYYY-MM-DD", name: "Missed Math 101 - Chapter 1" }
     return (
+      
       <View style={styles.item}>
         <Text style={styles.itemTitle}>{item.name}</Text>
       </View>
@@ -175,10 +177,16 @@ export default function HomeScreen({ navigation, user }) {
   }, []);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
+       <LinearGradient colors={['rgba(255, 122, 43, 0.8)', 'rgba(255, 184, 77, 0.8)', 'rgba(255, 122, 43, 0.8)']}
+
+      className="w-full flex-1">
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text h3 style={styles.welcomeText}>
-          Welcome {user?.email}!
+        <Text className="font-extrabold text-left text-3xl text-white mt-5 ml-5">
+          Welcome 
+        </Text>
+        <Text className="font-extrabold text-left text-2xl text-white ml-5 mb-2">
+        {user?.email}!
         </Text>
 
         {loading ? (
@@ -188,11 +196,42 @@ export default function HomeScreen({ navigation, user }) {
         ) : (
           <>
             {/* Show a non-expandable calendar that always shows the full month */}
-            <Calendar
-              style={styles.calendar}
+            <Calendar className="border-[5px] border-white rounded-md width ml-3 mr-3"
               hideExtraDays={false}
               firstDay={1}
               markedDates={markedDates}
+
+              theme={{
+                // Selected Day
+                selectedDayBackgroundColor: '#4A90E2', // Soft blue background for selected day
+                selectedDayTextColor: 'white', // White text on selected day
+                
+                // Today
+                todayTextColor: '#FF7F50', // Coral color for today's text
+                todayBackgroundColor: 'transparent', // Transparent background for today
+                
+                // Arrows
+                arrowColor: '#f4511e', // Dark gray for arrows (previous/next month)
+                
+                // Month Title
+                monthTextColor: '#f4311e', // Dark gray for month title
+          
+                
+                // Fonts
+                textDayFontFamily: 'Poppins', // Modern sans-serif font for the day text
+                textMonthFontFamily: 'Poppins', // Modern sans-serif font for the month title
+                textDayHeaderFontFamily: 'Poppins', // Consistent font for day headers
+                
+                // Font Weight
+                textDayFontWeight: '700', // Semi-bold weight for day text for better readability
+                textMonthFontWeight: '800', // Semi-bold weight for month text
+                textDayHeaderFontWeight: '400', // Lighter weight for day headers (Mon, Tue, etc.)
+                
+                // Font Size
+                textDayFontSize: 16, // Smaller, more refined day font size
+                textMonthFontSize: 22, // Slightly larger month text
+                textDayHeaderFontSize: 14, // Smaller header font size for day headers (Mon, Tue, etc.)
+              }}
             />
 
             {/* If no missed days => show "No missed days" */}
@@ -211,7 +250,7 @@ export default function HomeScreen({ navigation, user }) {
           </>
         )}
       </ScrollView>
-
+      </LinearGradient>
       <HomeNavBar initialIndex={0} navigation={navigation} />
     </SafeAreaView>
   );
@@ -223,7 +262,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f0f0f0"
   },
   scrollContent: {
-    paddingBottom: 100
+    paddingBottom: 100,
   },
   welcomeText: {
     textAlign: "center",
@@ -232,7 +271,10 @@ const styles = StyleSheet.create({
   calendar: {
     minHeight: 370,
     marginHorizontal: 10,
-    marginBottom: 10
+    marginBottom: 10,
+    borderRadius: 10,
+    borderColor: "teal",
+    borderWidth: 2,
   },
   sectionStyle: {
     backgroundColor: "#ddd",
