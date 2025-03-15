@@ -3,6 +3,7 @@ import { View, ActivityIndicator, StyleSheet, Animated } from "react-native";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebaseConfig";
 import { Text, Input, Button, Card } from "react-native-elements";
+import {styled} from 'nativewind';
 
 export default function EnhancedAuthScreen() {
   const [mode, setMode] = useState("login");
@@ -12,7 +13,7 @@ export default function EnhancedAuthScreen() {
   const [loading, setLoading] = useState(false);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
-
+  const StyledButton = styled(Button);
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: 1,
@@ -73,15 +74,16 @@ export default function EnhancedAuthScreen() {
 
           {errorMsg ? <Text style={styles.errorText}>{errorMsg}</Text> : null}
 
-          <Button
+          <StyledButton
             title={mode === "login" ? "Log In" : "Sign Up"}
+            titleStyle={styles.buttonText}
             onPress={handleAuthAction}
             buttonStyle={styles.primaryButton}
           />
 
           {loading && <ActivityIndicator size="large" color="#f4511e" style={{ marginTop: 10 }} />}
 
-          <Button
+          <StyledButton
             type="clear"
             title={
               mode === "login"
@@ -89,7 +91,9 @@ export default function EnhancedAuthScreen() {
                 : "Already have an account? Log In"
             }
             onPress={toggleMode}
-            titleStyle={{ color: "#f4511e" }}
+            titleStyle={{ color: "#f4511e", fontFamily: "Georgia" }}
+            className="text-center"
+          
           />
         </Card>
       </Animated.View>
@@ -124,6 +128,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 20,
     color: "#f4511e",
+    fontFamily: "cursive",
+    fontWeight: "bold"
   },
   primaryButton: {
     backgroundColor: "#f4511e",
@@ -136,4 +142,9 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 10,
   },
+  buttonText: {
+    fontFamily: "cursive",
+    fontWeight: "bold",
+
+  }
 });
