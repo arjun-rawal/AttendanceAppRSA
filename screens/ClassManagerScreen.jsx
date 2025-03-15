@@ -26,7 +26,7 @@ export default function ClassManagerScreen({navigation}) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text className="text-center font-bold  shadow text-3xl mb-5">Manage Your Classes</Text>
+      <Text className="text-center font-bold shadow text-3xl mb-5">Manage Your Classes</Text>
 
       {/* Buttons for Syncing & Adding Classes */}
       <View style={styles.buttonContainer}>
