@@ -91,7 +91,7 @@ export default function App() {
           </>
         )}
 
-        {user && role !== "teacher" && (
+        {
           <>
             <Stack.Screen
               name="Home"
@@ -99,8 +99,11 @@ export default function App() {
             >
               {(props) => <HomeScreen {...props} user={user} />}
             </Stack.Screen>
-            <Stack.Screen name="Classes">
-              {(props) => <ClassesScreen {...props} user={user} />}
+            <Stack.Screen name="ClassManager">
+              {(props) => <ClassManagerScreen {...props} user={user} />}
+            </Stack.Screen>
+            <Stack.Screen name="Settings">
+              {(props) => <SettingsScreen {...props} user={user} />}
             </Stack.Screen>
             <Stack.Screen name="Assistant">
               {(props) => <AIChat {...props} user={user} />}
@@ -112,7 +115,7 @@ export default function App() {
               {(props) => <ContentScreen {...props} user={user} />}
             </Stack.Screen>
           </>
-        )}
+        }
       </Stack.Navigator>
     </NavigationContainer>
   );
