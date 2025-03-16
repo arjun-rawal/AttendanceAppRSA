@@ -1,9 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { View, FlatList, StyleSheet } from "react-native";
+import { View, FlatList, StyleSheet, Modal, TextInput } from "react-native";
 import { Text, Button } from "react-native-elements";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { styled } from "nativewind";
-import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
+import { 
+  doc, 
+  getDoc, 
+  collection, 
+  getDocs, 
+  query, 
+  where, 
+  addDoc, 
+  updateDoc, 
+  arrayUnion 
+} from "firebase/firestore";
 import { db } from "../firebaseConfig"; // import your Firestore db
 import HomeNavBar from "../components/HomeNavBar";
 import { LinearGradient } from "expo-linear-gradient";
@@ -11,9 +21,10 @@ import { LinearGradient } from "expo-linear-gradient";
 export default function ClassManagerScreen({ navigation, user }) {
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newClassId, setNewClassId] = useState(""); // renamed to newClassId for clarity
 
-  // Example: fetch user doc by user.uid or user.email
-  // Then fetch all class docs that match IDs in user.classes
+  // Fetch user's classes (if any) as before.
   useEffect(() => {
     const fetchUserAndClasses = async () => {
       try {
@@ -32,7 +43,8 @@ export default function ClassManagerScreen({ navigation, user }) {
         }
 
         const userData = userSnap.data();
-        const classIds = userData.classes || [];
+        const classIds = userData.Classes || [];
+        const absences = userData.daysMissed?.length || 0;
 
         if (classIds.length === 0) {
           // No classes
@@ -42,27 +54,19 @@ export default function ClassManagerScreen({ navigation, user }) {
         }
 
         // 2) Fetch all class docs from the "Classes" collection
-        // where Classes.Id is in the user’s classes array
         const classesRef = collection(db, "Classes");
-        // If your Firestore structure uses 'Classes.Id' as a field,
-        // you'll need a query like this:
         const q = query(classesRef, where("Id", "in", classIds));
-        // Note: "in" queries only support max 10 items. If more, do in batches.
-
         const querySnapshot = await getDocs(q);
-
         const fetchedClasses = [];
         querySnapshot.forEach((docSnap) => {
           const cData = docSnap.data();
-          // cData.Id, cData.name, etc.
           fetchedClasses.push({
             id: docSnap.id, // Firestore doc ID
             classId: cData.Id, // "Classes.Id"
-            name: cData.name,
-            absences: 0, // If you want to store # of absences from somewhere else
+            name: cData.Name,
+            absences: absences,
           });
         });
-
         setClasses(fetchedClasses);
       } catch (error) {
         console.error("Error fetching classes:", error);
@@ -80,57 +84,122 @@ export default function ClassManagerScreen({ navigation, user }) {
     // Implement your API call logic if needed
   };
 
-  // Placeholder function for manually adding a class
+  // For parent users: Add a class by entering a class ID.
   const addClassManually = () => {
-    console.log("Adding class manually...");
-    // Implement a modal or form logic here
+    setShowAddModal(true);
+  };
+
+  const handleAddClass = async () => {
+    if (!newClassId.trim()) {
+      alert("Class ID cannot be empty.");
+      return;
+    }
+    try {
+      // Look up the class in the "Classes" collection using the entered ID.
+      const classRef = doc(db, "Classes", newClassId.trim());
+      const classSnap = await getDoc(classRef);
+      if (!classSnap.exists()) {
+        alert("No class found with that ID. Please check the ID and try again.");
+        return;
+      }
+      
+
+      // Class exists; update the parent's document to add this class ID to their Classes array.
+      const userRef = doc(db, "users", user.uid);
+      await updateDoc(userRef, {
+        Classes: arrayUnion(newClassId.trim()),
+      });
+      alert("Class added successfully!");
+      setShowAddModal(false);
+      setNewClassId("");
+      // Optionally, update your local state if you want to reflect the change immediately.
+    } catch (error) {
+      console.error("Error adding class:", error);
+      alert("Error adding class. Please try again.");
+    }
   };
 
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right']}>
-      <LinearGradient colors={[
-  'rgba(153, 0, 0, 0.8)',  // Darker red
-  'rgba(204, 0, 0, 0.8)',  // A brighter but still dark red for a smooth gradient
-  'rgba(153, 0, 0, 0.8)'   // Same darker red for consistency
-]}
-      className="w-full flex-1">
-      <Text className="mt-6 text-2xl font-extrabold text-white text-center ">Manage Your Classes</Text>
+      <LinearGradient
+        colors={[
+          'rgba(153, 0, 0, 0.8)',  // Darker red
+          'rgba(204, 0, 0, 0.8)',  // Brighter dark red
+          'rgba(153, 0, 0, 0.8)'
+        ]}
+        className="w-full flex-1"
+      >
+        <Text className="mt-6 text-2xl font-extrabold text-white text-center">
+          Manage Your Classes
+        </Text>
 
-      {/* Buttons for Syncing & Adding Classes */}
-      <View style={styles.buttonContainer}>
-        <Button
-          title="Sync Google Classroom"
-          onPress={syncGoogleClassroom}
-          className="mt-2 ml-4 mr-4 "
-          buttonStyle={styles.button}
-          titleStyle={styles.buttonText}
-        />
-        <Button
-          title="Add Class Manually"
-          onPress={addClassManually}
-          className="ml-4 mr-4"
-          buttonStyle={styles.button}
-          titleStyle={styles.buttonText}
-        />
-      </View>
+        {/* Buttons for Syncing & Adding Classes */}
+        <View style={styles.buttonContainer}>
+          <Button
+            title="Sync Google Classroom"
+            onPress={syncGoogleClassroom}
+            className="mt-2 ml-4 mr-4"
+            buttonStyle={styles.button}
+            titleStyle={styles.buttonText}
+          />
+          <Button
+            title="Add Class Manually"
+            onPress={addClassManually}
+            className="ml-4 mr-4"
+            buttonStyle={styles.button}
+            titleStyle={styles.buttonText}
+          />
+        </View>
 
-      {loading ? (
-        <Text style={{ textAlign: "center", marginTop: 20 }}>Loading...</Text>
-      ) : classes.length === 0 ? (
-        <Text className="mt-2 text-xl font-extrabold text-white text-center ">No Classes Added</Text>
-      ) : (
-        // Scrollable List of Classes
-        <FlatList
-          data={classes}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.classItem}>
-              <Text style={styles.className}>{item.name}</Text>
-              <Text style={styles.absences}>Absences: {item.absences}</Text>
+        {loading ? (
+          <Text style={{ textAlign: "center", marginTop: 20 }}>Loading...</Text>
+        ) : classes.length === 0 ? (
+          <Text className="mt-2 text-xl font-extrabold text-white text-center">
+            No Classes Added
+          </Text>
+        ) : (
+          // Scrollable List of Classes
+          <FlatList
+            data={classes}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <View style={styles.classItem}>
+                <Text style={styles.className}>{item.name}</Text>
+                <Text style={styles.absences}>Absences: {item.absences}</Text>
+              </View>
+            )}
+          />
+        )}
+
+        {showAddModal && (
+          <Modal visible={showAddModal} transparent animationType="slide">
+            <View style={styles.modalContainer}>
+              <View style={styles.modalContent}>
+                <Text h4>Add New Class</Text>
+                <TextInput
+                  placeholder="Enter class ID"
+                  value={newClassId}
+                  onChangeText={setNewClassId}
+                  style={styles.input}
+                />
+                <View style={styles.modalButtons}>
+                  <Button
+                    title="Cancel"
+                    onPress={() => setShowAddModal(false)}
+                    buttonStyle={styles.modalButton}
+                    titleStyle={styles.buttonText}
+                  />
+                  <Button
+                    title="Add"
+                    onPress={handleAddClass}
+                    buttonStyle={styles.modalButton}
+                    titleStyle={styles.buttonText}
+                  />
+                </View>
+              </View>
             </View>
-          )}
-        />
-      )}
+          </Modal>
+        )}
       </LinearGradient>
       <HomeNavBar initialIndex={1} navigation={navigation} />
     </SafeAreaView>
@@ -186,5 +255,33 @@ const styles = StyleSheet.create({
   absences: {
     fontSize: 16,
     color: "gray",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 8,
+    width: "80%",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    padding: 10,
+    marginTop: 10,
+  },
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginTop: 20,
+  },
+  modalButton: {
+    backgroundColor: "#f4511e",
+    paddingHorizontal: 20,
   },
 });
