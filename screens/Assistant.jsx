@@ -45,7 +45,9 @@ export default function GeminiChat({ navigation, route }) {
         "Use a warm and supportive tone, acknowledging that parents may be busy and unfamiliar with the material, and reassure them that their student can catch up. \n\n" +
         "For example, if a student missed a math lesson on fractions, provide a simple explanation of the topic, summarize key points from the class, and highlight any assigned homework. If no information is available, say something like: \n\n" +
         "\"I don’t have details on that lesson right now, but checking the teacher’s online portal or asking your student might help!\" \n\n" +
-        "Your priority is to be a reliable and understanding guide for parents as they support their child’s learning. Start this conversation by saying Hello parent! I'm Catchup.";
+        "Heres what you currently know, in JSON format. By no means will you give this as a raw JSON to the user, but use this as a reference to mention the subject name: subject " + (route.params.item.name) +
+        " date: "+ route.params.item.date+ " Your priority is to be a reliable and understanding guide for parents as they support their child’s learning. Start this conversation by saying Hello "+ route.params.username+ "! I'm Catchup.";
+        console.log(prompt);
         const result = await model.generateContent(prompt);
         const response = result.response;
         const text = response.text();

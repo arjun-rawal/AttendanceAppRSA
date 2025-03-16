@@ -48,7 +48,7 @@ export default function TeacherDashboard({ user }) {
       return;
     }
     try {
-      const randomId = String.valueOf(Math.floor(Math.random() * 900) + 100);
+      const randomId = String(Math.floor(Math.random() * 900) + 100);
       await setDoc(doc(db, 'Classes', randomId.toString()), {
         teacherId: user.uid,
         Name: newClassName.trim(),

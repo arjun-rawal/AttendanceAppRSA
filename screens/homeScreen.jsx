@@ -52,7 +52,7 @@ export default function HomeScreen({ navigation, user,role }) {
   const [markedDates, setMarkedDates] = useState({});
   const [agendaItems, setAgendaItems] = useState({});
   const [loading, setLoading] = useState(true);
-
+  const [username, setName] = useState("Parent name unknown");
   // Fetch user info and build marked dates and agenda items.
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -71,6 +71,7 @@ export default function HomeScreen({ navigation, user,role }) {
           return;
         }
         const userData = userSnap.data();
+        setName(userData.name);
         // daysMissed: an array of Timestamps
         const daysMissed = userData.daysMissed || [];
         const userClassIds = userData.Classes || [];
@@ -160,7 +161,7 @@ export default function HomeScreen({ navigation, user,role }) {
 
   // Define handleNavigate before using it.
   const handleNavigate = (item) => {
-    navigation.navigate("Assistant", { selectedDate: item.date, item: item });
+    navigation.navigate("Assistant", {  item: item, username:username });
   };
 
   // Renders each agenda item.

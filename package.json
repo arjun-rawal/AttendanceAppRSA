@@ -17,6 +17,7 @@
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
     "expo": "~52.0.38",
+    "expo-image-picker": "^16.0.6",
     "expo-linear-gradient": "^14.0.2",
     "expo-speech": "^13.0.1",
     "expo-status-bar": "~2.0.1",
