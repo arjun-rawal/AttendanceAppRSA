@@ -12,15 +12,22 @@ import {
   getDocs,
   query,
   where,
+  Timestamp,
 } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import { DateTime } from "luxon";
 
-/**
- * Compare two Firestore Timestamps by day, month, and year (ignoring time).
- */
 function isSameDay(ts1, ts2) {
-  const d1 = ts1.toDate();
-  const d2 = ts2.toDate();
+  if (!ts1 || !ts2) return false;
+  console.log("TS2", ts2);
+  const d1 =
+    ts1 instanceof Timestamp ? ts1.toDate() : DateTime.fromISO(ts1).toJSDate();
+  console.log("D1:", d1);
+
+  console.log("D2BEFORE", ts2);
+  const d2 = DateTime.fromISO(ts2.substring(1, ts2.length - 1)).toJSDate();
+  console.log("D2", d2);
+  console.log("DATES:", d1, d2);
   return (
     d1.getFullYear() === d2.getFullYear() &&
     d1.getMonth() === d2.getMonth() &&
@@ -28,18 +35,20 @@ function isSameDay(ts1, ts2) {
   );
 }
 
-/**
- * Convert a Firestore Timestamp -> "YYYY-MM-DD" for Calendar / Agenda.
- */
 function timestampToDateString(timestamp) {
+  console.log("TIMESTAMP", timestamp);
   const dateObj = timestamp.toDate();
   const year = dateObj.getFullYear();
-  const month = (`0${dateObj.getMonth() + 1}`).slice(-2);
-  const day = (`0${dateObj.getDate()}`).slice(-2);
+  const month = `0${dateObj.getMonth() + 1}`.slice(-2);
+  const day = `0${dateObj.getDate()}`.slice(-2);
   return `${year}-${month}-${day}`;
 }
 
-export default function HomeScreen({ navigation, user }) {
+export default function HomeScreen({ navigation, user,role }) {
+  console.log("USER",role)
+  if (role=="teacher"){
+    navigation.replace("TeacherDashboard")
+  }
   const [markedDates, setMarkedDates] = useState({});
   const [agendaItems, setAgendaItems] = useState({});
   const [loading, setLoading] = useState(true);
@@ -64,10 +73,8 @@ export default function HomeScreen({ navigation, user }) {
         const userData = userSnap.data();
         // daysMissed: an array of Timestamps
         const daysMissed = userData.daysMissed || [];
-        // classes: an array of class IDs
         const userClassIds = userData.Classes || [];
         console.log(userClassIds);
-        // If user has no missed days, stop early.
         if (daysMissed.length === 0) {
           setLoading(false);
           return;
@@ -91,7 +98,6 @@ export default function HomeScreen({ navigation, user }) {
             content: cData.Content || [],
           });
         });
-        console.log("MM", classesData);
 
         // 3) Build newMarkedDates & newAgendaItems
         const newMarkedDates = {};
@@ -110,10 +116,10 @@ export default function HomeScreen({ navigation, user }) {
 
           classesData.forEach(({ className, content }) => {
             content.forEach((item) => {
+              console.log("MISSEDDAYS", missedDayTS);
+              console.log(item.Day);
               if (item.Day && isSameDay(missedDayTS, item.Day)) {
-                const itemTitle = item.Material
-                  ? `Missed ${className} - ${item.Material}`
-                  : `Missed ${className}`;
+                const itemTitle = `Missed ${className}`;
                 newAgendaItems[dateString].push({
                   date: dateString,
                   name: itemTitle,
@@ -161,7 +167,10 @@ export default function HomeScreen({ navigation, user }) {
   const renderItem = useCallback(
     ({ item }) => {
       return (
-        <TouchableOpacity style={styles.item} onPress={() => handleNavigate(item)}>
+        <TouchableOpacity
+          style={styles.item}
+          onPress={() => handleNavigate(item)}
+        >
           <Text style={styles.itemTitle}>{item.name}</Text>
         </TouchableOpacity>
       );
@@ -237,7 +246,9 @@ export default function HomeScreen({ navigation, user }) {
           ]}
           className="w-full flex-1"
         >
-          <Text style={{ textAlign: "center", marginVertical: 20, color: "white" }}>
+          <Text
+            style={{ textAlign: "center", marginVertical: 20, color: "white" }}
+          >
             Loading...
           </Text>
         </LinearGradient>
