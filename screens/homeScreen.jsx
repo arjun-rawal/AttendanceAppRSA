@@ -199,7 +199,7 @@ export default function HomeScreen({ navigation, user,role }) {
         {user?.email}!
       </Text>
       <View className="flex-row items-center mb-2 ml-2 mr-8">
-        <ChatBubble message="Hey there! You currently have x absences. Don't worry, we're going to get you all caught up!" />
+        <ChatBubble message="Hey there! You currently have 3 absences. Don't worry, we're going to get you all caught up!" />
         <Image
           source={require("../assets/ketchup_bot.png")}
           className="w-24 h-28 rounded-full border-4 border-white ml-2 mr-4 mt-2 mb-2 p-2"

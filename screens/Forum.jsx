@@ -190,8 +190,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     shadowOpacity: 0.3,
     shadowOffset: { width: 0, height: 2 },
+    marginBottom: 70,
+    padding: 10,
   },
-  fabText: { fontSize: 30, color: "#fff" },
+  fabText: { fontSize: 15, color: "#fff", fontWeight: 'bold' },
 
   // Modal Styles
   modalContainer: { flex: 1, padding: 20, backgroundColor: "#fff" },
