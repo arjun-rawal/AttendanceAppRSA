@@ -5,6 +5,7 @@ import * as GoogleGenerativeAI from "@google/generative-ai";
 import ClassBar from "../components/ClassBar";
 import { useNavigation } from "@react-navigation/native";
 import {Markdown} from 'react-native-markdown-display';
+import { Image } from 'react-native';
 import {
   View,
   Text,
@@ -19,6 +20,7 @@ import { FontAwesome } from "@expo/vector-icons";
 import { Entypo } from "@expo/vector-icons";
 import FlashMessage, { showMessage } from "react-native-flash-message";
 import { styled } from "nativewind";
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function GeminiChat({ navigation, route }) {
   console.log("Information the assistant got: ", route.params);
@@ -37,15 +39,20 @@ export default function GeminiChat({ navigation, route }) {
       try {
         const genAI = new GoogleGenerativeAI.GoogleGenerativeAI(API_KEY);
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
-        const prompt =  "You are an AI assistant designed to help parents understand what their child missed in class today. Your goal is to provide a friendly and understanding experience while explaining the concepts covered in class and guiding parents on what assignments their student needs to complete. \n\n" +
+        const prompt =  "You are Catchup, an AI assistant designed to help parents and students understand what was covered in class today. Your goal is to provide a clear and supportive experience by summarizing key lessons, explaining concepts in an easy-to-understand way, and guiding students on any missed assignments or materials. \n\n" +
         "You should only provide information based on the assignments, notes, and materials available for that day. \n\n" +
-        "If you are unsure about an answer or lack information, do not speculate—politely let the parent know and suggest checking with the teacher or student. \n\n" +
-        "Keep responses concise but informative, breaking down complex topics in an accessible way for parents who may not be familiar with the subject. \n\n" +
-        "Stay focused on discussing class topics, assignments, and educational content. If asked unrelated questions, gently steer the conversation back to helping with coursework. \n\n" +
-        "Use a warm and supportive tone, acknowledging that parents may be busy and unfamiliar with the material, and reassure them that their student can catch up. \n\n" +
-        "For example, if a student missed a math lesson on fractions, provide a simple explanation of the topic, summarize key points from the class, and highlight any assigned homework. If no information is available, say something like: \n\n" +
+        "If specific details are unavailable, do not speculate—politely suggest checking the teacher’s online portal or asking the student for clarification. \n\n" +
+        "Keep responses concise, structured, and engaging. Break down complex topics into simple explanations, using relevant examples when needed to improve understanding. \n\n" +
+        "Stay focused on class topics, assignments, and educational content. If asked unrelated questions, gently redirect the conversation back to coursework. \n\n" +
+        "Use a warm and encouraging tone, reassuring parents and students that catching up is manageable. Acknowledge that parents may be unfamiliar with the subject matter and provide guidance in a way that is accessible to all. \n\n" +
+        "For example, if a student missed a math lesson on fractions, provide a simple explanation of fractions, summarize key lesson points, and highlight any assigned homework. If no information is available, say something like: \n\n" +
         "\"I don’t have details on that lesson right now, but checking the teacher’s online portal or asking your student might help!\" \n\n" +
-        "Your priority is to be a reliable and understanding guide for parents as they support their child’s learning. Start this conversation by saying Hello parent! I'm Catchup.";
+        "Your priority is to be a reliable and understanding guide for parents and students as they catch up on class material. Start this conversation by saying: \n\n" +
+        "Never generate your responses in markup language. NO ASTERISKS, ITALICS, BOLD ARE ALLOWED IN YOUR RESPONSE. \n\n" +
+        "Start teaching them about fractions \n\n" +
+        "Never ask any questions to the user. \n\n" +
+        "\"Hello! I’m Catchup. Let’s go over what was covered in class today and make sure you have everything you need to stay on track.\"";
+
         const result = await model.generateContent(prompt);
         const response = result.response;
         const text = response.text();
@@ -79,18 +86,38 @@ export default function GeminiChat({ navigation, route }) {
   }, []);
 
   const sendMessage = async () => {
+    if (!userInput.trim()) return; // Prevent sending empty messages
+  
     setLoading(true);
+  
+    // Add the user's message to the chat
     const userMessage = { text: userInput, user: true };
-    setMessages([...messages, userMessage]);
-
+    setMessages((prevMessages) => [...prevMessages, userMessage]);
+  
     try {
+      // Build the conversation context
+      const conversationContext = messages
+        .map((msg) => (msg.user ? `Parent: ${msg.text}` : `Catchup: ${msg.text}`))
+        .join("\n");
+  
+      // Add the user's current input to the context
+      const prompt = `${conversationContext}\nParent: ${userInput}\nCatchup:`;
+  
       const genAI = new GoogleGenerativeAI.GoogleGenerativeAI(API_KEY);
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
-      const prompt = userMessage.text;
       const result = await model.generateContent(prompt);
       const response = result.response;
-      const text = response.text();
-      setMessages([...messages, { text, user: false }]);
+      let text = response.text();
+  
+      // Remove "Catchup:" from the start of the response, if present
+      if (text.startsWith("Catchup:")) {
+        text = text.replace("Catchup:", "").trim();
+      }
+  
+      // Add Gemini's response to the chat
+      const aiMessage = { text, user: false };
+      setMessages((prevMessages) => [...prevMessages, aiMessage]);
+  
       if (text && !isSpeaking) {
         Speech.speak(text);
         setIsSpeaking(true);
@@ -107,7 +134,7 @@ export default function GeminiChat({ navigation, route }) {
       });
     } finally {
       setLoading(false);
-      setUserInput("");
+      setUserInput(""); // Clear the input box
     }
   };
 
@@ -127,24 +154,53 @@ export default function GeminiChat({ navigation, route }) {
     setIsSpeaking(false);
   };
 
-  const renderMessage = ({ item }) => (
-    <View style={styles.messageContainer}>
-      <Text style={[styles.messageText, item.user && styles.userMessage]}>
-        {item.text}
-      </Text>
+const renderMessage = ({ item }) => (
+  <View
+    style={[
+      styles.messageContainer,
+      item.user ? styles.userMessageContainer : styles.aiMessageContainer,
+    ]}
+  >
+    {/* Bubble container with AI logo */}
+    <View style={styles.bubbleContainer}>
+      {!item.user && (
+        <Image
+          source={require("../assets/ketchup_head.png")} // Replace with your logo path
+          style={styles.aiLogo}
+          className="ml-1 mt-2 border rounded-full border-3 pd-2 border-white w-10 h-10"
+        />
+      )}
+      <View
+        style={[
+          styles.chatBubble,
+          item.user ? styles.userBubble : styles.aiBubble,
+        ]}
+      >
+        <Text className="text-lg font-semibold text-white">{item.text}</Text>
+      </View>
     </View>
-  );
-
+  </View>
+);
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["left", "right"]}>
       <View style={styles.container}>
+      <LinearGradient
+                colors={[
+                  "rgba(255, 122, 43, 0.8)",
+                  "rgba(255, 184, 77, 0.8)",
+                  "rgba(255, 122, 43, 0.8)",
+                ]}
+                className="w-full flex-1"
+              >
         <FlatList
           data={messages}
           renderItem={renderMessage}
           keyExtractor={(item, index) => `${item.text}-${index}`}
-          inverted
         />
-        <KeyboardAvoidingView style={styles.inputContainer}>
+         </LinearGradient>
+         </View>
+        <KeyboardAvoidingView style={styles.inputContainer}
+          className="mb-2">
           <TouchableOpacity style={styles.micIcon} onPress={toggleSpeech}>
             {isSpeaking ? (
               <FontAwesome
@@ -182,7 +238,6 @@ export default function GeminiChat({ navigation, route }) {
             </TouchableOpacity>
           )}
         </KeyboardAvoidingView>
-      </View>
       <ClassBar
         initialIndex={0}
         navigation={navigation}
@@ -193,10 +248,10 @@ export default function GeminiChat({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#ffff", marginTop: 50 },
+  container: { flex: 1, backgroundColor: "#ffff"},
   messageContainer: { padding: 10, marginVertical: 5 },
-  messageText: { fontSize: 16 },
-  inputContainer: { flexDirection: "row", alignItems: "center", padding: 50 },
+  messageText: { fontSize: 16, textColor: "white", fontWeight: "extra-bold"},
+  inputContainer: { flexDirection: "row", alignItems: "center", padding: 10, marginBottom: 80 },
   input: {
     flex: 1,
     padding: 10,
@@ -225,4 +280,28 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginLeft: 3,
   },
+  userMessageContainer: { alignItems: "flex-end" },
+  aiMessageContainer: { alignItems: "flex-start" },
+  chatBubble: {
+    padding: 10,
+    borderRadius: 10,
+    maxWidth: "80%",
+  },
+  userBubble: {
+    backgroundColor: "blue",
+  },
+  aiBubble: {
+    backgroundColor: "black",
+    marginLeft: 40,
+
+  },
+  aiLogo: {
+    width: 40, // Adjust size as needed
+    height: 40,
+    borderRadius: 15,
+    position: "absolute", // Position the logo in the top-left corner
+    top: -10, // Adjust to position above the bubble
+    left: -10, // Adjust to position to the left of the bubble
+  },
+  
 });
