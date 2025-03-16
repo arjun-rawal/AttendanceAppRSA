@@ -3,11 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, FlatList, TextInput, Alert, TouchableOpacity, Modal } from 'react-native';
 import { Text, Button } from 'react-native-elements';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { collection, query, where, onSnapshot, addDoc } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
-import { Calendar, ExpandableCalendar } from 'react-native-calendars';
+import { collection, query, where, onSnapshot, setDoc, doc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { signOut } from 'firebase/auth';
+import { db,auth } from '../firebaseConfig';
+import { Calendar } from 'react-native-calendars';
 import HomeNavBar from '../components/HomeNavBar';
 import { useNavigation } from '@react-navigation/native';
+import { DateTime } from 'luxon';
 
 export default function TeacherDashboard({ user }) {
   const [classes, setClasses] = useState([]);
@@ -15,17 +17,21 @@ export default function TeacherDashboard({ user }) {
   const [newClassName, setNewClassName] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
+  const [showContentModal, setShowContentModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [contentForDay, setContentForDay] = useState('');
   const navigation = useNavigation();
 
-  console.log(user)
+  console.log(user);
   useEffect(() => {
+
     const q = query(
       collection(db, 'Classes'),
       where('teacherId', '==', user.uid)
     );
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const classData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      console.log("HERE", classData)
+      console.log("HERE", classData);
       setClasses(classData);
       setLoadingClasses(false);
     }, (error) => {
@@ -35,17 +41,20 @@ export default function TeacherDashboard({ user }) {
     return unsubscribe;
   }, [user.uid]);
 
-  // Add a new class to Firestore
+  // Add a new class to Firestore with a custom document ID.
   const addClass = async () => {
     if (!newClassName.trim()) {
       Alert.alert("Error", "Class name cannot be empty.");
       return;
     }
     try {
-      await addDoc(collection(db, 'classes'), {
+      const randomId = String(Math.floor(Math.random() * 900) + 100);
+      await setDoc(doc(db, 'Classes', randomId.toString()), {
         teacherId: user.uid,
-        name: newClassName.trim(),
-        createdAt: new Date()
+        Name: newClassName.trim(),
+        createdAt: new Date(),
+        Id: randomId,
+        Content: []
       });
       setNewClassName('');
       setShowAddModal(false);
@@ -54,17 +63,50 @@ export default function TeacherDashboard({ user }) {
       Alert.alert("Error", "Could not add class.");
     }
   };
-
-  // When a day is pressed on the calendar, navigate to EditContent screen
-  const onDayPress = (day) => {
-    if (selectedClass) {
-      navigation.navigate("EditContent", { className: selectedClass.name, selectedDate: day.dateString });
+  const handleSignOut = async () => {
+    try {
+       signOut(auth);
+      navigation.navigate("LoginReCall"); 
+    } catch (error) {
+      console.error("Error signing out:", error);
+      Alert.alert("Error", "Sign out failed.");
     }
   };
 
+  // When a day is pressed, open the modal to add content for that day.
+  const onDayPress = (day) => {
+    if (selectedClass) {
+      setSelectedDate(day.dateString);
+      setShowContentModal(true);
+    }
+  };
+
+  // Add content to the selected day by updating the class document.
+  const addContentToDay = async () => {
+    if (!contentForDay.trim()) {
+      Alert.alert("Error", "Content cannot be empty.");
+      return;
+    }
+    try {
+      await updateDoc(doc(db, 'Classes', selectedClass.id), {
+        Content: arrayUnion({
+          Day: selectedDate,
+          Material: contentForDay.trim(),
+          createdAt: new Date()
+        })
+      });
+      setContentForDay('');
+      setShowContentModal(false);
+      Alert.alert("Success", "Content added successfully.");
+    } catch (error) {
+      console.error("Error adding content:", error);
+      Alert.alert("Error", "Could not add content.");
+    }
+  };
+  
   return (
     <SafeAreaView style={styles.container}>
-      <Text h3 style={styles.header}>Teacher Dashboard</Text>
+      <Text h3 style={styles.header}>Welcome {user?.displayName || ""}</Text>
       <Button 
         title="Add Class" 
         onPress={() => setShowAddModal(true)} 
@@ -98,12 +140,11 @@ export default function TeacherDashboard({ user }) {
             buttonStyle={styles.closeCalendarButton} 
           />
           <Calendar
-              hideExtraDays={false}
-              firstDay={1}
-              style={styles.calendar}
-            //   markedDates={markedDates}
-            />
-
+            hideExtraDays={false}
+            firstDay={1}
+            style={styles.calendar}
+            onDayPress={onDayPress}
+          />
         </View>
       )}
 
@@ -134,8 +175,43 @@ export default function TeacherDashboard({ user }) {
         </View>
       </Modal>
 
-      {/* Optionally include a bottom navigation bar */}
-      <HomeNavBar initialIndex={1} navigation={navigation} />
+      {/* Modal to add content for a specific day */}
+      <Modal visible={showContentModal} transparent animationType="slide">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text h4>Add Content for {selectedDate}</Text>
+            <TextInput
+              placeholder="Enter content"
+              value={contentForDay}
+              onChangeText={setContentForDay}
+              style={[styles.input, { height: 100 }]}
+              multiline={true}
+            />
+            <View style={styles.modalButtons}>
+              <Button 
+                title="Cancel" 
+                onPress={() => {
+                  setShowContentModal(false);
+                  setContentForDay("");
+                }} 
+                buttonStyle={styles.modalButton} 
+              />
+              <Button 
+                title="Save" 
+                onPress={addContentToDay} 
+                buttonStyle={styles.modalButton} 
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
+      <View style={styles.signOutContainer}>
+        <Button 
+          title="Sign Out" 
+          onPress={handleSignOut} 
+          buttonStyle={styles.signOutButton} 
+        />
+      </View>
     </SafeAreaView>
   );
 }
@@ -164,7 +240,6 @@ const styles = StyleSheet.create({
     fontSize: 18, 
     fontWeight: "bold" 
   },
-
   calendarContainer: { 
     marginTop: 20, 
     borderTopWidth: 1, 
@@ -180,6 +255,11 @@ const styles = StyleSheet.create({
   closeCalendarButton: { 
     backgroundColor: "#888", 
     marginTop: 10 
+  },
+  calendar: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
   },
   modalContainer: { 
     flex: 1, 
@@ -208,5 +288,13 @@ const styles = StyleSheet.create({
   modalButton: { 
     backgroundColor: "#f4511e", 
     paddingHorizontal: 20 
+  },
+  signOutContainer: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  signOutButton: {
+    backgroundColor: "#d9534f", // red-ish sign out color
+    paddingHorizontal: 30,
   },
 });

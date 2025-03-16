@@ -79,25 +79,19 @@ export default function App() {
           />
         )}
 
-        {user && role === "teacher" && (
-          <>
-            <Stack.Screen
-              name="TeacherDashboard"
-              options={{ title: "Teacher Dashboard" }}
-            >
-              {(props) => <TeacherDashboard {...props} user={user} />}
-            </Stack.Screen>
-
-          </>
-        )}
+      
+    
+         
+        
 
         {
           <>
+
             <Stack.Screen
               name="Home"
               options={{ title: "Calendar" }}
             >
-              {(props) => <HomeScreen {...props} user={user} />}
+              {(props) => <HomeScreen {...props} user={user} role={role}/>}
             </Stack.Screen>
             <Stack.Screen name="ClassManager">
               {(props) => <ClassManagerScreen {...props} user={user} />}
@@ -114,6 +108,17 @@ export default function App() {
             <Stack.Screen name="Content">
               {(props) => <ContentScreen {...props} user={user} />}
             </Stack.Screen>
+            <Stack.Screen
+              name="TeacherDashboard"
+              options={{ title: "TeacherDashboard" }}
+            >
+              {(props) => <TeacherDashboard {...props} user={user} />}
+            </Stack.Screen>
+            <Stack.Screen
+            name="LoginReCall"
+            component={LoginSignupScreen}
+            options={{ headerShown: false }}
+          />
           </>
         }
       </Stack.Navigator>

@@ -15,6 +15,7 @@ export default function EnhancedAuthScreen() {
   const [role, setRole] = useState("parent"); // default role
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
+  const [name, setName] = useState("")
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const StyledButton = styled(Button);
@@ -35,12 +36,21 @@ export default function EnhancedAuthScreen() {
       if (mode === "login") {
         userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
       } else {
+        if (!name.trim()) {
+          setErrorMsg("Name is required");
+          setLoading(false);
+          return;
+        }
         userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
-        // Save user role to Firestore for new users
+        // Save user role and name to Firestore for new users
         await setDoc(doc(db, "users", userCredential.user.uid), {
           email: email.trim(),
           role: role,
+          name: name.trim(),
         });
+        userCredential.user.updateProfile({
+          displayName: displayName
+      });
       }
     } catch (error) {
       setErrorMsg(error.message);
@@ -52,6 +62,7 @@ export default function EnhancedAuthScreen() {
   const toggleMode = () => {
     setEmail("");
     setPassword("");
+    setName("");
     setErrorMsg("");
     setMode(mode === "login" ? "signup" : "login");
   };
@@ -59,11 +70,6 @@ export default function EnhancedAuthScreen() {
   return (
     <View className="flex-1">
       <LinearGradient colors={['rgba(255, 80, 43, 0.8)', 'rgba(255, 160, 77, 0.8)', 'rgba(255, 80, 43, 0.8)']}
-
-
-
-
-
        className="w-full flex-1">
       <Animated.View style={[styles.fadeContainer, { opacity: fadeAnim }]}>
         <Card containerStyle={styles.card}>
@@ -91,23 +97,32 @@ export default function EnhancedAuthScreen() {
           />
 
           {mode === "signup" && (
-            <View style={styles.roleContainer}>
-              <RNText style={styles.roleLabel}>Select Role:</RNText>
-              <View style={styles.roleButtons}>
-                <TouchableOpacity 
-                  style={[styles.roleButton, role === "parent" && styles.selectedRole]}
-                  onPress={() => setRole("parent")}
-                >
-                  <RNText style={styles.roleButtonText}>Parent</RNText>
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  style={[styles.roleButton, role === "teacher" && styles.selectedRole]}
-                  onPress={() => setRole("teacher")}
-                >
-                  <RNText style={styles.roleButtonText}>Teacher</RNText>
-                </TouchableOpacity>
+            <>
+              <Input
+                label="Name"
+                placeholder="Enter your name"
+                value={name}
+                onChangeText={setName}
+                leftIcon={{ type: "material", name: "person", color: "#f4511e" }}
+              />
+              <View style={styles.roleContainer}>
+                <RNText style={styles.roleLabel}>Select Role:</RNText>
+                <View style={styles.roleButtons}>
+                  <TouchableOpacity 
+                    style={[styles.roleButton, role === "parent" && styles.selectedRole]}
+                    onPress={() => setRole("parent")}
+                  >
+                    <RNText style={styles.roleButtonText}>Parent</RNText>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.roleButton, role === "teacher" && styles.selectedRole]}
+                    onPress={() => setRole("teacher")}
+                  >
+                    <RNText style={styles.roleButtonText}>Teacher</RNText>
+                  </TouchableOpacity>
+                </View>
               </View>
-            </View>
+            </>
           )}
 
           {errorMsg ? <Text style={styles.errorText}>{errorMsg}</Text> : null}
@@ -117,6 +132,7 @@ export default function EnhancedAuthScreen() {
             titleStyle={styles.buttonText}
             onPress={handleAuthAction}
             buttonStyle={styles.primaryButton}
+            disabled={loading} // Disable button while loading
           />
 
           {loading && <ActivityIndicator size="large" color="#f4511e" style={{ marginTop: 10 }} />}
