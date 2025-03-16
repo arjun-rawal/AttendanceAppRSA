@@ -121,7 +121,7 @@ const ForumScreen = ({ route, navigation }) => {
 
         <ClassBar initialIndex={2} navigation={navigation} selectedInfo={route.params} />
 
-        <TouchableOpacity style={styles.fab} onPress={() => setModalVisible(true)}>
+        <TouchableOpacity style={styles.fab} onPress={() => setModalVisible(true)} >
           <Text style={styles.fabText}>New</Text>
         </TouchableOpacity>
 

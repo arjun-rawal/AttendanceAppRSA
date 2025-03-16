@@ -241,12 +241,14 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   classItem: {
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "white",
     padding: 15,
     borderRadius: 8,
     marginVertical: 8,
     flexDirection: "row",
     justifyContent: "space-between",
+    marginLeft: 14,
+    marginRight: 14,
   },
   className: {
     fontSize: 18,

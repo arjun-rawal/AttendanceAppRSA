@@ -31,7 +31,7 @@ export default function GeminiChat({ navigation, route }) {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [showStopIcon, setShowStopIcon] = useState(false);
 
-  const API_KEY = "";
+  const API_KEY = "AIzaSyBEzatEcVbFys4q5X4KBi1rtDroeKAsPeo";
   const StyledView = styled(View);
   const StyledText = styled(Text);
   useEffect(() => {
@@ -39,19 +39,19 @@ export default function GeminiChat({ navigation, route }) {
       try {
         const genAI = new GoogleGenerativeAI.GoogleGenerativeAI(API_KEY);
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
-        const prompt =  "You are Catchup, an AI assistant designed to help parents and students understand what was covered in class today. Your goal is to provide a clear and supportive experience by summarizing key lessons, explaining concepts in an easy-to-understand way, and guiding students on any missed assignments or materials. \n\n" +
-        "You should only provide information based on the assignments, notes, and materials available for that day. \n\n" +
+        const prompt =  "You are Ketchup, an AI assistant designed to help parents and students understand what was covered in class today. Your goal is to provide a clear and supportive experience by summarizing key lessons, explaining concepts in an easy-to-understand way, and guiding students on any missed assignments or materials. \n\n" +
         "If specific details are unavailable, do not speculate—politely suggest checking the teacher’s online portal or asking the student for clarification. \n\n" +
         "Keep responses concise, structured, and engaging. Break down complex topics into simple explanations, using relevant examples when needed to improve understanding. \n\n" +
-        "Stay focused on class topics, assignments, and educational content. If asked unrelated questions, gently redirect the conversation back to coursework. \n\n" +
+        "Stay focused on the class topics, assignments, and educational content. If asked unrelated questions, gently redirect the conversation back to coursework. \n\n" +
         "Use a warm and encouraging tone, reassuring parents and students that catching up is manageable. Acknowledge that parents may be unfamiliar with the subject matter and provide guidance in a way that is accessible to all. \n\n" +
-        "For example, if a student missed a math lesson on fractions, provide a simple explanation of fractions, summarize key lesson points, and highlight any assigned homework. If no information is available, say something like: \n\n" +
+        "For example, if a student missed a math lesson on biology, provide a simple explanation of biology, summarize key lesson points, and highlight any assigned homework. If no information is available, say something like: \n\n" +
         "\"I don’t have details on that lesson right now, but checking the teacher’s online portal or asking your student might help!\" \n\n" +
         "Your priority is to be a reliable and understanding guide for parents and students as they catch up on class material. Start this conversation by saying: \n\n" +
         "Never generate your responses in markup language. NO ASTERISKS, ITALICS, BOLD ARE ALLOWED IN YOUR RESPONSE. \n\n" +
-        "Start teaching them about fractions \n\n" +
-        "Never ask any questions to the user. \n\n" +
-        "\"Hello! I’m Catchup. Let’s go over what was covered in class today and make sure you have everything you need to stay on track.\"";
+        "Heres what you currently know, in JSON format. By no means will you give this as a raw JSON to the user, but use this as a reference to mention the subject name: subject " + (route.params.item.name) +
+        " date: "+ route.params.item.date + " Your priority is to be a reliable and understanding guide for parents as they support their child’s learning. Start this conversation by saying Hello "+ route.params.username + "! I'm Ketchup.";
+
+
 
         const result = await model.generateContent(prompt);
         const response = result.response;
@@ -176,7 +176,7 @@ const renderMessage = ({ item }) => (
           item.user ? styles.userBubble : styles.aiBubble,
         ]}
       >
-        <Text className="text-lg font-semibold text-white">{item.text}</Text>
+        <Text className={`text-lg font-semibold ${item.user ? "text-white" : "text-black"}`}>{item.text}</Text>
       </View>
     </View>
   </View>
@@ -250,8 +250,8 @@ const renderMessage = ({ item }) => (
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#ffff"},
   messageContainer: { padding: 10, marginVertical: 5 },
-  messageText: { fontSize: 16, textColor: "white", fontWeight: "extra-bold"},
-  inputContainer: { flexDirection: "row", alignItems: "center", padding: 10, marginBottom: 80 },
+  messageText: { fontSize: 16, textColor: "black", fontWeight: "extra-bold"},
+  inputContainer: { flexDirection: "row", alignItems: "center", padding: 10, marginBottom: 80, backgroundColor: "#f4511e"},
   input: {
     flex: 1,
     padding: 10,
@@ -288,10 +288,10 @@ const styles = StyleSheet.create({
     maxWidth: "80%",
   },
   userBubble: {
-    backgroundColor: "blue",
+    backgroundColor: "#007AFF",
   },
   aiBubble: {
-    backgroundColor: "black",
+    backgroundColor: "#F7F7F8",
     marginLeft: 40,
 
   },
