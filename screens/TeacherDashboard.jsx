@@ -1,15 +1,32 @@
 // TeacherDashboard.jsx
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, FlatList, TextInput, Alert, TouchableOpacity, Modal } from 'react-native';
+import { 
+  View, 
+  StyleSheet, 
+  FlatList, 
+  TextInput, 
+  Alert, 
+  TouchableOpacity, 
+  Modal 
+} from 'react-native';
 import { Text, Button } from 'react-native-elements';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { collection, query, where, onSnapshot, setDoc, doc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { 
+  collection, 
+  query, 
+  where, 
+  onSnapshot, 
+  setDoc, 
+  doc, 
+  updateDoc, 
+  arrayUnion 
+} from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
-import { db,auth } from '../firebaseConfig';
+import { db, auth } from '../firebaseConfig';
 import { Calendar } from 'react-native-calendars';
+import * as DocumentPicker from 'expo-document-picker';
 import HomeNavBar from '../components/HomeNavBar';
 import { useNavigation } from '@react-navigation/native';
-import { DateTime } from 'luxon';
 
 export default function TeacherDashboard({ user }) {
   const [classes, setClasses] = useState([]);
@@ -20,28 +37,36 @@ export default function TeacherDashboard({ user }) {
   const [showContentModal, setShowContentModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [contentForDay, setContentForDay] = useState('');
+
+  // NEW: state to store the selected file info
+  const [selectedFile, setSelectedFile] = useState(null);
+
   const navigation = useNavigation();
 
-  console.log(user);
   useEffect(() => {
-
     const q = query(
       collection(db, 'Classes'),
       where('teacherId', '==', user.uid)
     );
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const classData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      console.log("HERE", classData);
-      setClasses(classData);
-      setLoadingClasses(false);
-    }, (error) => {
-      console.error("Error fetching classes:", error);
-      setLoadingClasses(false);
-    });
+    const unsubscribe = onSnapshot(
+      q, 
+      (snapshot) => {
+        const classData = snapshot.docs.map(doc => ({ 
+          id: doc.id, 
+          ...doc.data() 
+        }));
+        setClasses(classData);
+        setLoadingClasses(false);
+      }, 
+      (error) => {
+        console.error("Error fetching classes:", error);
+        setLoadingClasses(false);
+      }
+    );
     return unsubscribe;
   }, [user.uid]);
 
-  // Add a new class to Firestore with a custom document ID.
+  // Add a new class to Firestore
   const addClass = async () => {
     if (!newClassName.trim()) {
       Alert.alert("Error", "Class name cannot be empty.");
@@ -63,10 +88,11 @@ export default function TeacherDashboard({ user }) {
       Alert.alert("Error", "Could not add class.");
     }
   };
+
   const handleSignOut = async () => {
     try {
-       signOut(auth);
-      navigation.navigate("LoginReCall"); 
+      await signOut(auth);
+      navigation.navigate("LoginReCall");
     } catch (error) {
       console.error("Error signing out:", error);
       Alert.alert("Error", "Sign out failed.");
@@ -92,10 +118,13 @@ export default function TeacherDashboard({ user }) {
         Content: arrayUnion({
           Day: selectedDate,
           Material: contentForDay.trim(),
-          createdAt: new Date()
+          createdAt: new Date(),
+          // You could store a file URL/path here if you upload the file
         })
       });
+      // CLEAR fields and modal
       setContentForDay('');
+      setSelectedFile(null);
       setShowContentModal(false);
       Alert.alert("Success", "Content added successfully.");
     } catch (error) {
@@ -103,7 +132,22 @@ export default function TeacherDashboard({ user }) {
       Alert.alert("Error", "Could not add content.");
     }
   };
-  
+
+  // NEW: handle file selection from user
+  const pickFile = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({ 
+        type: '*/*' 
+      });
+      if (result.type === 'success') {
+        // result.uri, result.name, result.size, etc.
+        console.log('Picked file:', result);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <Text h3 style={styles.header}>Welcome {user?.displayName || ""}</Text>
@@ -133,7 +177,9 @@ export default function TeacherDashboard({ user }) {
 
       {selectedClass && (
         <View style={styles.calendarContainer}>
-          <Text style={styles.calendarHeader}>Calendar for {selectedClass.Name}</Text>
+          <Text style={styles.calendarHeader}>
+            Calendar for {selectedClass.Name}
+          </Text>
           <Button 
             title="Close Calendar" 
             onPress={() => setSelectedClass(null)} 
@@ -175,7 +221,7 @@ export default function TeacherDashboard({ user }) {
         </View>
       </Modal>
 
-      {/* Modal to add content for a specific day */}
+      {/* Modal to add content (and optionally file) for a specific day */}
       <Modal visible={showContentModal} transparent animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
@@ -187,12 +233,28 @@ export default function TeacherDashboard({ user }) {
               style={[styles.input, { height: 100 }]}
               multiline={true}
             />
+
+            {/* NEW: Button to pick a file */}
+            <Button
+              title="Select File"
+              onPress={pickFile}
+              buttonStyle={[styles.modalButton, { marginTop: 10 }]}
+            />
+
+            {/* Display selected file name if any */}
+            {selectedFile && (
+              <Text style={{ marginTop: 10 }}>
+                Selected File: {selectedFile.name}
+              </Text>
+            )}
+
             <View style={styles.modalButtons}>
               <Button 
                 title="Cancel" 
                 onPress={() => {
                   setShowContentModal(false);
                   setContentForDay("");
+                  setSelectedFile(null);
                 }} 
                 buttonStyle={styles.modalButton} 
               />
@@ -205,6 +267,7 @@ export default function TeacherDashboard({ user }) {
           </View>
         </View>
       </Modal>
+
       <View style={styles.signOutContainer}>
         <Button 
           title="Sign Out" 
@@ -294,7 +357,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   signOutButton: {
-    backgroundColor: "#d9534f", // red-ish sign out color
+    backgroundColor: "#d9534f",
     paddingHorizontal: 30,
   },
 });
