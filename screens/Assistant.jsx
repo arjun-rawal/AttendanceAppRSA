@@ -31,7 +31,7 @@ export default function GeminiChat({ navigation, route }) {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [showStopIcon, setShowStopIcon] = useState(false);
 
-  const API_KEY = "";
+  const API_KEY = "AIzaSyCjcxVUf3QKFfOkpcYaNTWRwmhAtJuSFkU";
   const StyledView = styled(View);
   const StyledText = styled(Text);
   useEffect(() => {
@@ -55,7 +55,7 @@ export default function GeminiChat({ navigation, route }) {
 
         const result = await model.generateContent(prompt);
         const response = result.response;
-        const text = response.text();
+        const text = response.text().replace(/\*/g, '');
         console.log(text);
         showMessage({
           message: "Welcome to Gemini Chat 🤖",
