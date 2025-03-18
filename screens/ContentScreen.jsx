@@ -1,60 +1,76 @@
-// ContentScreen.jsx
-import React, { useState, useEffect } from 'react';
-import { SafeAreaView, ScrollView, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
-import ClassBar from '../components/ClassBar';
-export default function ContentScreen({ route, navigation }) {
-  // Expect route.params to include { className, selectedDate }
-  const { name, date } = route.params.item;
-  const className = name;
-  const selectedDate = date;
-  const [content, setContent] = useState(null);
+import React, { useState, useEffect } from "react";
+import { View, ActivityIndicator, StyleSheet } from "react-native";
+import { WebView } from "react-native-webview"; // <-- Use react-native-webview
+import { getDownloadURL, ref } from "firebase/storage";
+import { storage } from "../firebaseConfig";
+import ClassBar from "../components/ClassBar";
+
+export default function ContentScreen({ navigation, route }) {
+  const [pdfUrl, setPdfUrl] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Hardcode your desired PDF reference
+  const fileRef = ref(storage, "grade-3-meaning-of-multiplication-sentences-a.pdf");
+
   useEffect(() => {
-    const fetchContent = async () => {
+    const fetchPdfUrl = async () => {
       try {
-        console.log(route.params);
-        const docRef = doc(db, "classes", className, "lessons", selectedDate);
-        
-        const docSnap = await getDoc(docRef);
-        
-        if (docSnap.exists()) {
-          setContent(docSnap.data().content);
-        } else {
-          setContent("No content available for this class on this day.");
-        }
+        // 1) Get direct download URL from Firebase
+        const directDownloadUrl = await getDownloadURL(fileRef);
+
+        // 2) Embed that URL in Google Docs Viewer
+        const googleDocsUrl = `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(
+          directDownloadUrl
+        )}`;
+
+        setPdfUrl(googleDocsUrl);
       } catch (error) {
-        console.error(error);
-        setContent("Error loading content.");
+        console.error("Failed to get PDF URL:", error);
       } finally {
         setLoading(false);
       }
     };
-    fetchContent();
-  }, [className, selectedDate]);
+
+    fetchPdfUrl();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#f4511e" />
+      </View>
+    );
+  }
 
   return (
-    <SafeAreaView style={styles.container} edges={["left","right"]}>
-      <ScrollView contentContainerStyle={styles.contentContainer}>
-        {loading ? (
-          <ActivityIndicator size="large" color="#f4511e" />
-        ) : (
-          <Text style={styles.contentText}>{content}</Text>
-        )}
-      </ScrollView>
+    <>
+      {/* Render the PDF within a WebView */}
+      <View style={styles.webviewContainer}>
+        <WebView
+          source={{ uri: pdfUrl }}
+          onError={error => console.log("WebView error:", error)}
+          style={{ flex: 1 }}
+        />
+      </View>
+
+      {/* Include ClassBar at bottom */}
       <ClassBar
         initialIndex={1}
         navigation={navigation}
-        selectedInfo={route.params}
+        selectedInfo={route?.params}
       />
-    </SafeAreaView>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  contentContainer: { padding: 20 },
-  contentText: { fontSize: 16 },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  webviewContainer: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
 });
