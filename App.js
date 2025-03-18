@@ -5,7 +5,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "./firebaseConfig";
 import LottieView from "lottie-react-native";
-import { View, StyleSheet, ActivityIndicator } from "react-native";
+import { View, StyleSheet, ActivityIndicator, LogBox } from "react-native";
 
 import LoginSignupScreen from "./screens/LoginSignupScreen";
 import ClassesScreen from "./screens/ClassesScreen";
@@ -18,10 +18,10 @@ import ForumScreen from "./screens/Forum";
 import ContentScreen from "./screens/ContentScreen";
 import EditContentScreen from "./screens/EditContentScreen";
 import TeacherDashboard from "./screens/TeacherDashboard";
-
 const Stack = createStackNavigator();
 
 export default function App() {
+  LogBox.ignoreAllLogs();
   const [user, setUser] = useState(null);
   const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
