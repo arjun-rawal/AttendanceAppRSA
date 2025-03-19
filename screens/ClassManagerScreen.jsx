@@ -3,18 +3,18 @@ import { View, FlatList, StyleSheet, Modal, TextInput } from "react-native";
 import { Text, Button } from "react-native-elements";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { styled } from "nativewind";
-import { 
-  doc, 
-  getDoc, 
-  collection, 
-  getDocs, 
-  query, 
-  where, 
-  addDoc, 
-  updateDoc, 
-  arrayUnion 
+import {
+  doc,
+  getDoc,
+  collection,
+  getDocs,
+  query,
+  where,
+  addDoc,
+  updateDoc,
+  arrayUnion,
 } from "firebase/firestore";
-import { db } from "../firebaseConfig"; // import your Firestore db
+import { db } from "../firebaseConfig"; 
 import HomeNavBar from "../components/HomeNavBar";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -22,9 +22,8 @@ export default function ClassManagerScreen({ navigation, user }) {
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newClassId, setNewClassId] = useState(""); // renamed to newClassId for clarity
+  const [newClassId, setNewClassId] = useState(""); 
 
-  // Fetch user's classes (if any) as before.
   useEffect(() => {
     const fetchUserAndClasses = async () => {
       try {
@@ -47,13 +46,11 @@ export default function ClassManagerScreen({ navigation, user }) {
         const absences = userData.daysMissed?.length || 0;
 
         if (classIds.length === 0) {
-          // No classes
           setClasses([]);
           setLoading(false);
           return;
         }
 
-        // 2) Fetch all class docs from the "Classes" collection
         const classesRef = collection(db, "Classes");
         const q = query(classesRef, where("Id", "in", classIds));
         const querySnapshot = await getDocs(q);
@@ -61,8 +58,8 @@ export default function ClassManagerScreen({ navigation, user }) {
         querySnapshot.forEach((docSnap) => {
           const cData = docSnap.data();
           fetchedClasses.push({
-            id: docSnap.id, // Firestore doc ID
-            classId: cData.Id, // "Classes.Id"
+            id: docSnap.id, 
+            classId: cData.Id, 
             name: cData.Name,
             absences: absences,
           });
@@ -78,13 +75,10 @@ export default function ClassManagerScreen({ navigation, user }) {
     fetchUserAndClasses();
   }, [user]);
 
-  // Placeholder function for syncing with Google Classroom
   const syncGoogleClassroom = () => {
     console.log("Syncing with Google Classroom...");
-    // Implement your API call logic if needed
   };
 
-  // For parent users: Add a class by entering a class ID.
   const addClassManually = () => {
     setShowAddModal(true);
   };
@@ -95,16 +89,15 @@ export default function ClassManagerScreen({ navigation, user }) {
       return;
     }
     try {
-      // Look up the class in the "Classes" collection using the entered ID.
       const classRef = doc(db, "Classes", newClassId.trim());
       const classSnap = await getDoc(classRef);
       if (!classSnap.exists()) {
-        alert("No class found with that ID. Please check the ID and try again.");
+        alert(
+          "No class found with that ID. Please check the ID and try again."
+        );
         return;
       }
-      
 
-      // Class exists; update the parent's document to add this class ID to their Classes array.
       const userRef = doc(db, "users", user.uid);
       await updateDoc(userRef, {
         Classes: arrayUnion(newClassId.trim()),
@@ -112,7 +105,6 @@ export default function ClassManagerScreen({ navigation, user }) {
       alert("Class added successfully!");
       setShowAddModal(false);
       setNewClassId("");
-      // Optionally, update your local state if you want to reflect the change immediately.
     } catch (error) {
       console.error("Error adding class:", error);
       alert("Error adding class. Please try again.");
@@ -120,12 +112,12 @@ export default function ClassManagerScreen({ navigation, user }) {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['left', 'right']}>
+    <SafeAreaView style={styles.container} edges={["left", "right"]}>
       <LinearGradient
         colors={[
-          'rgba(153, 0, 0, 0.8)',  // Darker red
-          'rgba(204, 0, 0, 0.8)',  // Brighter dark red
-          'rgba(153, 0, 0, 0.8)'
+          "rgba(153, 0, 0, 0.8)", 
+          "rgba(204, 0, 0, 0.8)", 
+          "rgba(153, 0, 0, 0.8)",
         ]}
         className="w-full flex-1"
       >
@@ -133,7 +125,6 @@ export default function ClassManagerScreen({ navigation, user }) {
           Manage Your Classes
         </Text>
 
-        {/* Buttons for Syncing & Adding Classes */}
         <View style={styles.buttonContainer}>
           <Button
             title="Sync Google Classroom"
@@ -158,7 +149,6 @@ export default function ClassManagerScreen({ navigation, user }) {
             No Classes Added
           </Text>
         ) : (
-          // Scrollable List of Classes
           <FlatList
             data={classes}
             keyExtractor={(item) => item.id}

@@ -9,7 +9,6 @@ import { styled } from "nativewind";
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function SettingsScreen({ navigation, user }) {
-  // Function to delete classes (Replace with actual logic)
   const StyledText = styled(Text);
   const handleDeleteClasses = () => {
     Alert.alert(

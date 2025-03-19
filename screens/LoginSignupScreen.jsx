@@ -12,7 +12,7 @@ export default function EnhancedAuthScreen() {
   const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("parent"); // default role
+  const [role, setRole] = useState("parent"); 
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState("")
@@ -42,7 +42,6 @@ export default function EnhancedAuthScreen() {
           return;
         }
         userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
-        // Save user role and name to Firestore for new users
         await setDoc(doc(db, "users", userCredential.user.uid), {
           email: email.trim(),
           role: role,
