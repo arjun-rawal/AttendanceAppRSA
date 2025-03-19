@@ -107,7 +107,7 @@ export default function GeminiChat({ navigation, route }) {
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
       const result = await model.generateContent(prompt);
       const response = result.response;
-      let text = response.text();
+      let text = response.text().replace(/\*/g, '');
   
       // Remove "Catchup:" from the start of the response, if present
       if (text.startsWith("Catchup:")) {
