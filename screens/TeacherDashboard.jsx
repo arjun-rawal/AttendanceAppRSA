@@ -1,4 +1,3 @@
-// TeacherDashboard.jsx
 import React, { useState, useEffect } from 'react';
 import { 
   View, 
@@ -38,7 +37,6 @@ export default function TeacherDashboard({ user }) {
   const [selectedDate, setSelectedDate] = useState(null);
   const [contentForDay, setContentForDay] = useState('');
 
-  // NEW: state to store the selected file info
   const [selectedFile, setSelectedFile] = useState(null);
 
   const navigation = useNavigation();
@@ -99,7 +97,6 @@ export default function TeacherDashboard({ user }) {
     }
   };
 
-  // When a day is pressed, open the modal to add content for that day.
   const onDayPress = (day) => {
     if (selectedClass) {
       setSelectedDate(day.dateString);
@@ -107,7 +104,6 @@ export default function TeacherDashboard({ user }) {
     }
   };
 
-  // Add content to the selected day by updating the class document.
   const addContentToDay = async () => {
     if (!contentForDay.trim()) {
       Alert.alert("Error", "Content cannot be empty.");
@@ -119,10 +115,8 @@ export default function TeacherDashboard({ user }) {
           Day: selectedDate,
           Material: contentForDay.trim(),
           createdAt: new Date(),
-          // You could store a file URL/path here if you upload the file
         })
       });
-      // CLEAR fields and modal
       setContentForDay('');
       setSelectedFile(null);
       setShowContentModal(false);
@@ -133,14 +127,12 @@ export default function TeacherDashboard({ user }) {
     }
   };
 
-  // NEW: handle file selection from user
   const pickFile = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({ 
         type: '*/*' 
       });
       if (result.type === 'success') {
-        // result.uri, result.name, result.size, etc.
         console.log('Picked file:', result);
       }
     } catch (err) {

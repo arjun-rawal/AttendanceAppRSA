@@ -1,4 +1,3 @@
-// EditContentScreen.jsx
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView, TextInput, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -6,7 +5,6 @@ import { db } from '../firebaseConfig';
 import { Button, Text } from 'react-native-elements';
 
 export default function EditContentScreen({ route, navigation }) {
-  // Expect route.params to include { className, selectedDate }
   const { className, selectedDate } = route.params;
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);

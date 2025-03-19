@@ -20,38 +20,60 @@ const HomeNavBar = ({ initialIndex }) => {
 
   return (
     <View style={styles.navbarContainer}>
-      <Tab value={activeIndex} onChange={handleChange} indicatorStyle={styles.indicator}>
-        {/* Home Tab */}
+      <Tab
+        value={activeIndex}
+        onChange={handleChange}
+        indicatorStyle={styles.indicator}
+      >
         <Tab.Item
           title="Home"
-          titleStyle={{  // Change the font family
-            fontSize: 16,                  // Adjust font size
-            fontWeight: 'bold',            // Font weight
-            color: 'black',                 // Text color
+          titleStyle={{
+            fontSize: 16,
+            fontWeight: "bold",
+            color: "black",
           }}
-          icon={<Icon name="home" type="feather" size={28} color={activeIndex === 0 ? "red" : "gray"} />}
+          icon={
+            <Icon
+              name="home"
+              type="feather"
+              size={28}
+              color={activeIndex === 0 ? "red" : "gray"}
+            />
+          }
         />
 
-        {/* Classes Tab (Newly Added) */}
         <Tab.Item
           title="Classes"
-          titleStyle={{  // Change the font family
-            fontSize: 16,                  // Adjust font size
-            fontWeight: 'bold',            // Font weight
-            color: 'black',                 // Text color
+          titleStyle={{
+            fontSize: 16,
+            fontWeight: "bold",
+            color: "black",
           }}
-          icon={<Icon name="book" type="feather" size={28} color={activeIndex === 1 ? "red" : "gray"} />}
+          icon={
+            <Icon
+              name="book"
+              type="feather"
+              size={28}
+              color={activeIndex === 1 ? "red" : "gray"}
+            />
+          }
         />
 
-        {/* Settings Tab */}
         <Tab.Item
           title="Settings"
-          titleStyle={{  // Change the font family
-            fontSize: 16,                  // Adjust font size
-            fontWeight: 'bold',            // Font weight
-            color: 'black',                 // Text color
+          titleStyle={{
+            fontSize: 16,
+            fontWeight: "bold",
+            color: "black",
           }}
-          icon={<Icon name="settings" type="feather" size={28} color={activeIndex === 2 ? "red" : "gray"} />}
+          icon={
+            <Icon
+              name="settings"
+              type="feather"
+              size={28}
+              color={activeIndex === 2 ? "red" : "gray"}
+            />
+          }
         />
       </Tab>
     </View>
@@ -60,18 +82,17 @@ const HomeNavBar = ({ initialIndex }) => {
 
 const styles = StyleSheet.create({
   navbarContainer: {
-    position: "absolute", // Fixed at the bottom
+    position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "white", // Ensures it has a visible background
-    elevation: 5, // Shadow on Android
+    backgroundColor: "white",
+    elevation: 5,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: -2 }, // Shadow above navbar
+    shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     paddingVertical: 8,
-
   },
   indicator: {
     backgroundColor: "red",

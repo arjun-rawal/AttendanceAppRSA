@@ -6,20 +6,12 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 
 export default function ClassesScreen({ route, navigation }) {
   const { selectedDate } = route.params;
-  const myIcon = <Icon name="rocket" size={30} color="#900" />; //Creates icons to display on the buttons
-  // hardcoded data, but ideally we would fetch assignments based on the date
+  const myIcon = <Icon name="rocket" size={30} color="#900" />;
   const classes = [
     { name: 'Math', task: '- 4 digit addition' },
     { name: 'History', task: '- Native Americans in Popular Culture Handout' },
   ];
-  /*example of how we would select based on date:
-  const missed_days = ['2025-03-12': [
-    { name: 'Math', task: '4 digit addition' },
-    { name: 'History', task: 'Native Americans in Popular Culture Handout' },
-  ], etc for each missed day...
-  ]
-  const classes = missed_days[selected_date]; + some way to check if the day wasnt missed
-   */
+
 
   return (
     <SafeAreaView style={styles.container}>

@@ -8,8 +8,7 @@ import LottieView from "lottie-react-native";
 import { View, StyleSheet, ActivityIndicator, LogBox } from "react-native";
 
 import LoginSignupScreen from "./screens/LoginSignupScreen";
-import ClassesScreen from "./screens/ClassesScreen";
-import SpecificClass from "./screens/SpecificClass"; 
+import SpecificClass from "./screens/SpecificClass";
 import SettingsScreen from "./screens/SettingsScreen";
 import ClassManagerScreen from "./screens/ClassManagerScreen";
 import HomeScreen from "./screens/homeScreen";
@@ -79,19 +78,10 @@ export default function App() {
           />
         )}
 
-      
-    
-         
-        
-
         {
           <>
-
-            <Stack.Screen
-              name="Home"
-              options={{ title: "Calendar" }}
-            >
-              {(props) => <HomeScreen {...props} user={user} role={role}/>}
+            <Stack.Screen name="Home" options={{ title: "Calendar" }}>
+              {(props) => <HomeScreen {...props} user={user} role={role} />}
             </Stack.Screen>
             <Stack.Screen name="ClassManager">
               {(props) => <ClassManagerScreen {...props} user={user} />}
@@ -115,10 +105,10 @@ export default function App() {
               {(props) => <TeacherDashboard {...props} user={user} />}
             </Stack.Screen>
             <Stack.Screen
-            name="LoginReCall"
-            component={LoginSignupScreen}
-            options={{ headerShown: false }}
-          />
+              name="LoginReCall"
+              component={LoginSignupScreen}
+              options={{ headerShown: false }}
+            />
           </>
         }
       </Stack.Navigator>

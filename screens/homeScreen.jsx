@@ -44,16 +44,15 @@ function timestampToDateString(timestamp) {
   return `${year}-${month}-${day}`;
 }
 
-export default function HomeScreen({ navigation, user,role }) {
-  console.log("USER",role)
-  if (role=="teacher"){
-    navigation.replace("TeacherDashboard")
+export default function HomeScreen({ navigation, user, role }) {
+  console.log("USER", role);
+  if (role == "teacher") {
+    navigation.replace("TeacherDashboard");
   }
   const [markedDates, setMarkedDates] = useState({});
   const [agendaItems, setAgendaItems] = useState({});
   const [loading, setLoading] = useState(true);
   const [username, setName] = useState("Parent name unknown");
-  // Fetch user info and build marked dates and agenda items.
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
@@ -62,7 +61,6 @@ export default function HomeScreen({ navigation, user,role }) {
           return;
         }
 
-        // 1) Load the user's document
         const userRef = doc(db, "users", user.uid);
         const userSnap = await getDoc(userRef);
         if (!userSnap.exists()) {
@@ -72,7 +70,6 @@ export default function HomeScreen({ navigation, user,role }) {
         }
         const userData = userSnap.data();
         setName(userData.name);
-        // daysMissed: an array of Timestamps
         const daysMissed = userData.daysMissed || [];
         const userClassIds = userData.Classes || [];
         console.log(userClassIds);
@@ -81,7 +78,6 @@ export default function HomeScreen({ navigation, user,role }) {
           return;
         }
 
-        // 2) Fetch each relevant class doc from "Classes"
         if (userClassIds.length === 0) {
           setLoading(false);
           return;
@@ -90,7 +86,6 @@ export default function HomeScreen({ navigation, user,role }) {
         console.log(userClassIds);
         const q = query(classesRef, where("Id", "in", userClassIds));
         const classSnap = await getDocs(q);
-        // Build an array of { className, content }
         const classesData = [];
         classSnap.forEach((docSnap) => {
           const cData = docSnap.data();
@@ -100,7 +95,6 @@ export default function HomeScreen({ navigation, user,role }) {
           });
         });
 
-        // 3) Build newMarkedDates & newAgendaItems
         const newMarkedDates = {};
         const newAgendaItems = {};
 
@@ -142,10 +136,6 @@ export default function HomeScreen({ navigation, user,role }) {
     fetchUserInfo();
   }, [user]);
 
-  /**
-   * Convert our agendaItems object -> an array of { title, data: [] }
-   * for <AgendaList>.
-   */
   const convertToSections = (items) => {
     const sections = [];
     Object.keys(items).forEach((date) => {
@@ -159,12 +149,10 @@ export default function HomeScreen({ navigation, user,role }) {
 
   const sections = convertToSections(agendaItems);
 
-  // Define handleNavigate before using it.
   const handleNavigate = (item) => {
-    navigation.navigate("Assistant", {  item: item, username:username });
+    navigation.navigate("Assistant", { item: item, username: username });
   };
 
-  // Renders each agenda item.
   const renderItem = useCallback(
     ({ item }) => {
       return (
@@ -179,7 +167,6 @@ export default function HomeScreen({ navigation, user,role }) {
     [handleNavigate]
   );
 
-  // ChatBubble component (as before)
   const ChatBubble = ({ message }) => {
     return (
       <View style={styles.chatBubble}>
@@ -189,7 +176,6 @@ export default function HomeScreen({ navigation, user,role }) {
     );
   };
 
-  // HeaderContent for AgendaList, containing the welcome text, chat bubble, image, and Calendar.
   const HeaderContent = () => (
     <>
       <Text className="font-extrabold text-left text-3xl text-white mt-5 ml-5">
@@ -199,7 +185,7 @@ export default function HomeScreen({ navigation, user,role }) {
         {user?.email}!
       </Text>
       <View className="flex-row items-center mb-2 ml-2 mr-8">
-        <ChatBubble message="Hey there! You currently have 3 absences. Don't worry, we're going to get you all caught up!" />
+        <ChatBubble message="Hey there! You currently have 2 absences. Don't worry, we're going to get you all caught up!" />
         <Image
           source={require("../assets/ketchup_bot.png")}
           className="w-24 h-28 rounded-full border-4 border-white ml-2 mr-4 mt-2 mb-2 p-2"
